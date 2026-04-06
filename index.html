@@ -12,6 +12,9 @@
     width: 100%; height: 100%; overflow: hidden; position: fixed;
     background: linear-gradient(135deg, #f5e6d3 0%, #e8d4b8 100%);
     font-family: Arial, sans-serif;
+    touch-action: pan-y; /* Allow vertical scrolling only, no zoom */
+    -webkit-user-select: none; /* Prevent text selection */
+    user-select: none;
   }
 
   .container { max-width: 100%; height: 100%; margin: 0 auto; display: flex; flex-direction: column; }
@@ -91,8 +94,8 @@
   }
   .dropdown-content.show { display: block; }
   .dropdown-content button {
-    display: block; width: 100%; padding: 12px 16px; border: none;
-    background: white; color: #333; font-size: 1rem; font-weight: 600;
+    display: block; width: 100%; padding: 10px 14px; border: none;
+    background: white; color: #333; font-size: 0.85rem; font-weight: 600;
     text-align: left; cursor: pointer; transition: background 0.2s;
   }
   .dropdown-content button:first-child { border-radius: 8px 8px 0 0; }
@@ -219,9 +222,48 @@
 
   /* Cards Container */
   .cards-container { 
-    position: relative; width: 100%; flex: 1; 
-    display: flex; flex-direction: column; justify-content: center; 
+    position: relative; 
+    width: 100%; 
+    flex: 1; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
+    align-items: center;
     padding: 2vmin;
+    gap: 8px; /* Reduced from 20px */
+  }
+  
+  /* Photo Card Container - separate boundary */
+  .photo-card-container {
+    display: none; /* Hidden by default */
+    position: relative;
+    z-index: 5;
+  }
+  
+  .photo-card-container.visible {
+    display: block;
+  }
+  
+  /* Portrait: Photo above flipbook */
+  @media (orientation: portrait) {
+    .cards-container {
+      flex-direction: column;
+      gap: 5px; /* Tighter gap in portrait */
+    }
+    
+    .photo-card-container {
+      order: -1; /* Photo first */
+    }
+  }
+  
+  /* Landscape: Photo and flipbook side by side */
+  @media (orientation: landscape) {
+    .cards-container {
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      gap: 10px; /* Tighter gap in landscape */
+    }
   }
   
   .cards-wrapper { 
@@ -234,7 +276,6 @@
     padding: var(--wrapper-pad-top) var(--wrapper-pad-x) var(--wrapper-pad-bot);
     border-radius: 15px;
     max-width: fit-content;
-    margin: 0 auto;
     overflow: visible;
   }
 
@@ -475,43 +516,43 @@
   }
 
   .settings-title {
-    font-size: 0.75rem;
+    font-size: 0.65rem;
     font-weight: 700;
     color: #a0885f;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    padding: 6px 16px 10px;
+    padding: 5px 14px 8px;
     border-bottom: 1px solid #f0e8d8;
-    margin-bottom: 4px;
+    margin-bottom: 3px;
   }
 
   .settings-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 8px 16px;
-    gap: 16px;
+    padding: 6px 14px;
+    gap: 12px;
   }
 
   .settings-label {
-    font-size: 0.95rem;
+    font-size: 0.8rem;
     font-weight: 600;
     color: #5a4a32;
     white-space: nowrap;
   }
 
   .settings-toggle-btn {
-    font-size: 0.82rem;
+    font-size: 0.75rem;
     font-weight: 700;
-    padding: 5px 12px;
-    border-radius: 16px;
+    padding: 4px 10px;
+    border-radius: 14px;
     border: 2px solid #8b6f47;
     background: transparent;
     color: #8b6f47;
     cursor: pointer;
     transition: all 0.2s;
     white-space: nowrap;
-    min-width: 52px;
+    min-width: 46px;
     text-align: center;
   }
   .settings-toggle-btn:hover { background: #f5ece0; }
@@ -544,6 +585,53 @@
     color: #7a9a74;
     cursor: default;
     user-select: none;
+  }
+
+  /* Portrait mode: Make photo card 75% larger */
+  @media (orientation: portrait) {
+    .photo-card {
+      width: calc(var(--card-w) * 1.75);
+      height: calc(var(--card-h) * 1.75);
+    }
+    
+    .photo-card-plus {
+      font-size: calc(var(--card-font) * 0.55 * 1.75);
+    }
+    
+    .photo-card-label-inner {
+      font-size: calc(var(--label-font) * 0.85 * 1.75);
+    }
+  }
+
+  /* Simple flat paste button - bottom right corner */
+  .photo-paste-area {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 25%;
+    height: 22%;
+    border-left: 2px dashed #a0b49a;
+    border-top: 2px dashed #a0b49a;
+    background: rgba(122, 154, 116, 0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    cursor: pointer;
+  }
+
+  .photo-paste-icon {
+    font-size: 2rem;
+    line-height: 1;
+  }
+
+  .photo-paste-text {
+    font-size: 0.5rem;
+    font-weight: 600;
+    color: #7a9a74;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
   }
 
   .photo-card-plus {
@@ -583,13 +671,213 @@
     from { opacity: 1; transform: translateX(0)    scale(1); }
     to   { opacity: 0; transform: translateX(20px) scale(0.92); }
   }
-  .photo-card-scene.entering { animation: slideInRight 0.25s ease-out forwards; }
-  .photo-card-scene.exiting  { animation: slideOutRight 0.2s ease-in forwards; }
+  @keyframes slideInTop {
+    from { opacity: 0; transform: translateY(-20px) scale(0.92); }
+    to   { opacity: 1; transform: translateY(0)    scale(1); }
+  }
+  @keyframes slideOutTop {
+    from { opacity: 1; transform: translateY(0)    scale(1); }
+    to   { opacity: 0; transform: translateY(-20px) scale(0.92); }
+  }
+  
+  /* Landscape: slide from right */
+  @media (orientation: landscape) {
+    .photo-card-scene.entering { animation: slideInRight 0.25s ease-out forwards; }
+    .photo-card-scene.exiting  { animation: slideOutRight 0.2s ease-in forwards; }
+  }
+  
+  /* Portrait: slide from top */
+  @media (orientation: portrait) {
+    .photo-card-scene.entering { animation: slideInTop 0.25s ease-out forwards; }
+    .photo-card-scene.exiting  { animation: slideOutTop 0.2s ease-in forwards; }
+  }
+
+  /* Photo Attach Button on Cards */
+  .photo-attach-btn {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #8b6f47;
+    color: white;
+    border: 2px solid #fff;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  
+  .photo-attach-btn:hover {
+    background: #6d5736;
+    transform: scale(1.1);
+  }
+  
+  .photo-attach-btn.has-photo {
+    background: #4CAF50;
+  }
+
+  /* Attached Photo Display */
+  .card-photo {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 6px 6px 10px 10px;
+    pointer-events: none;
+  }
+
+  /* Photo Gallery Modal - Sliding Side Panel from LEFT */
+  .photo-gallery-modal {
+    position: fixed;
+    top: 0;
+    left: -100%;
+    width: 280px;
+    max-width: 75vw;
+    height: 100%;
+    background: white;
+    z-index: 10000;
+    transition: left 0.3s ease-out;
+    box-shadow: 4px 0 12px rgba(0,0,0,0.2);
+    overflow-y: auto;
+  }
+  
+  .photo-gallery-modal.show {
+    left: 0;
+  }
+  
+  /* Push main content when gallery opens */
+  .container {
+    transition: transform 0.3s ease-out;
+  }
+  
+  .container.gallery-open {
+    transform: translateX(280px);
+  }
+  
+  @media (max-width: 768px) {
+    .container.gallery-open {
+      transform: translateX(75vw);
+    }
+  }
+  
+  .photo-gallery-content {
+    padding: 16px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .gallery-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #e0e0e0;
+    flex-shrink: 0;
+  }
+  
+  .gallery-title {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #8b6f47;
+  }
+  
+  .gallery-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #999;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+  }
+  
+  .gallery-close:hover {
+    background: #f0f0f0;
+  }
+  
+  .gallery-words-container {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-start; /* Align bubbles to left, not stretched */
+  }
+  
+  .word-bubble {
+    background: linear-gradient(135deg, #f5e6d3 0%, #e8d4b8 100%);
+    border: 2px solid #8b6f47;
+    border-radius: 8px;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex; /* Fit to content width */
+    align-items: center;
+    width: auto; /* Don't stretch to full width */
+    min-width: auto;
+  }
+  
+  .word-bubble:hover {
+    transform: translateX(4px);
+    box-shadow: -2px 2px 6px rgba(139, 111, 71, 0.2);
+    background: linear-gradient(135deg, #e8d4b8 0%, #d8c4a8 100%);
+  }
+  
+  .word-bubble-text {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #8b6f47;
+    font-family: 'Comic Sans MS', 'Chalkboard SE', cursive, sans-serif;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+  
+  .word-bubble-delete {
+    display: none; /* Hidden - not needed */
+  }
+  
+  .gallery-empty {
+    text-align: center;
+    padding: 40px 16px;
+    color: #999;
+    font-size: 0.85rem;
+    line-height: 1.5;
+  }
 </style>
 </head>
 <body>
-  <div class="container">
+  <!-- Photo Gallery Side Panel -->
+  <div class="photo-gallery-modal" id="photoGalleryModal">
+    <div class="photo-gallery-content">
+      <div class="gallery-header">
+        <div class="gallery-title">Photo Gallery</div>
+        <button class="gallery-close" onclick="closePhotoGallery()">×</button>
+      </div>
+      <div class="gallery-words-container" id="galleryWordsContainer"></div>
+    </div>
+  </div>
+
+  <div class="container" id="mainContainer">
     <div class="top-bar">
+      <!-- Photo Gallery Button -->
+      <button class="settings-btn" onclick="openPhotoGallery()" aria-label="Photo Gallery" style="margin-right: auto;">
+        📷
+      </button>
+
       <!-- Settings gear -->
       <div class="settings-dropdown" id="settingsDropdown">
         <button class="settings-btn" onclick="toggleSettings()" aria-label="Settings">
@@ -627,6 +915,7 @@
       </div>
     </div>
     <div class="cards-container">
+      <div id="photoCardContainer" class="photo-card-container"></div>
       <div class="cards-wrapper" id="cardsWrapper"></div>
     </div>
   </div>
@@ -639,21 +928,168 @@
     const CASE_MODES = ['lower', 'UPPER', 'Sentence'];
     let currentCaseMode = 0;
 
-    function applyCaseTransform(text) {
+    function applyCaseTransform(text, cardIndex) {
       const mode = CASE_MODES[currentCaseMode];
       if (mode === 'lower') {
         return text.toLowerCase();
       } else if (mode === 'UPPER') {
         return text.toUpperCase();
       } else if (mode === 'Sentence') {
-        return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+        // Only capitalize the first card (index 0)
+        if (cardIndex === 0) {
+          return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+        } else {
+          return text.toLowerCase();
+        }
       }
       return text;
     }
 
+    // Photo attachment functions
+    function getCurrentWord() {
+      // Get current word blend from all cards
+      return gameState.cards.map(card => {
+        const letter = card.letters[card.currentIndex];
+        return applyCaseTransform(letter, 0).toLowerCase(); // Always use lowercase for storage key
+      }).join('');
+    }
+
+    function attachPhotoToCurrentWord() {
+      const word = getCurrentWord();
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            wordPhotos[word] = event.target.result;
+            renderCards(); // Re-render to show photo
+          };
+          reader.readAsDataURL(file);
+        }
+      };
+      input.click();
+    }
+
+    function openPhotoGallery() {
+      const modal = document.getElementById('photoGalleryModal');
+      const container = document.getElementById('galleryWordsContainer');
+      const mainContainer = document.getElementById('mainContainer');
+      
+      container.innerHTML = '';
+      
+      const photoWords = Object.keys(wordPhotos);
+      
+      if (photoWords.length === 0) {
+        container.innerHTML = '<div class="gallery-empty">No photos attached yet.<br><br>Turn on Photo Card and attach photos to word blends.</div>';
+      } else {
+        // Sort words alphabetically
+        photoWords.sort((a, b) => a.localeCompare(b));
+        
+        photoWords.forEach(word => {
+          const bubble = document.createElement('div');
+          bubble.className = 'word-bubble';
+          
+          // Click bubble to navigate to word
+          bubble.onclick = () => {
+            navigateToWord(word);
+            closePhotoGallery();
+          };
+          
+          // Word text with case transform
+          const wordText = document.createElement('div');
+          wordText.className = 'word-bubble-text';
+          
+          // Apply case transform based on current mode
+          let displayWord = word;
+          if (CASE_MODES[currentCaseMode] === 'lower') {
+            displayWord = word.toLowerCase();
+          } else if (CASE_MODES[currentCaseMode] === 'UPPER') {
+            displayWord = word.toUpperCase();
+          } else if (CASE_MODES[currentCaseMode] === 'Sentence') {
+            displayWord = word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+          }
+          
+          wordText.textContent = displayWord;
+          bubble.appendChild(wordText);
+          container.appendChild(bubble);
+        });
+      }
+      
+      // Slide panel in and push main content
+      modal.classList.add('show');
+      mainContainer.classList.add('gallery-open');
+    }
+
+    function navigateToWord(targetWord) {
+      // Split target word into individual letters
+      const targetLetters = targetWord.toLowerCase().split('');
+      
+      // Navigate each card to the corresponding letter
+      gameState.cards.forEach((card, cardIndex) => {
+        if (cardIndex < targetLetters.length) {
+          const targetLetter = targetLetters[cardIndex];
+          const letterIndex = card.letters.indexOf(targetLetter);
+          
+          if (letterIndex !== -1) {
+            card.currentIndex = letterIndex;
+            card.flippedCards = []; // Clear flipped stack when jumping
+          }
+        }
+      });
+      
+      renderCards();
+    }
+
+    function closePhotoGallery() {
+      const modal = document.getElementById('photoGalleryModal');
+      const mainContainer = document.getElementById('mainContainer');
+      
+      modal.classList.remove('show');
+      mainContainer.classList.remove('gallery-open');
+    }
+
     function toggleSettings() {
       const sd = document.getElementById('settingsDropdown');
+      const panel = document.getElementById('settingsPanel');
       sd.classList.toggle('open');
+      
+      // If opening, adjust position based on available space
+      if (sd.classList.contains('open')) {
+        setTimeout(() => {
+          const panelRect = panel.getBoundingClientRect();
+          const viewportWidth = window.innerWidth;
+          const viewportHeight = window.innerHeight;
+          
+          // Check if panel is cut off on the right
+          if (panelRect.right > viewportWidth) {
+            panel.style.left = 'auto';
+            panel.style.right = '0';
+          }
+          
+          // Check if panel is cut off on the bottom
+          if (panelRect.bottom > viewportHeight) {
+            panel.style.top = 'auto';
+            panel.style.bottom = 'calc(100% + 6px)';
+          }
+          
+          // In landscape mode, check vertical position
+          if (window.matchMedia('(orientation: landscape)').matches) {
+            if (panelRect.right > viewportWidth) {
+              panel.style.left = 'auto';
+              panel.style.right = 'calc(100% + 6px)';
+            }
+          }
+        }, 10);
+      } else {
+        // Reset to default positioning when closing
+        panel.style.left = '';
+        panel.style.right = '';
+        panel.style.top = '';
+        panel.style.bottom = '';
+      }
     }
 
     function toggleCase() {
@@ -678,22 +1114,27 @@
     };
 
     let photoCardVisible = false;
+    const wordPhotos = {}; // Store photos by word blend (e.g., "bat", "cat", "am")
 
     function togglePhotoCard() {
       const btn = document.getElementById('photoToggleBtn');
-      const wrapper = document.getElementById('cardsWrapper');
+      const photoContainer = document.getElementById('photoCardContainer');
 
       if (!photoCardVisible) {
         photoCardVisible = true;
         btn.textContent = 'On';
         btn.classList.add('active');
-        appendPhotoCard(wrapper, true);
+        photoContainer.classList.add('visible');
+        appendPhotoCard(photoContainer, true);
       } else {
-        const existing = wrapper.querySelector('.photo-card-scene');
+        const existing = photoContainer.querySelector('.photo-card-scene');
         if (existing) {
           existing.classList.remove('entering');
           existing.classList.add('exiting');
-          setTimeout(() => { if (existing.parentNode) existing.parentNode.removeChild(existing); }, 200);
+          setTimeout(() => { 
+            if (existing.parentNode) existing.parentNode.removeChild(existing);
+            photoContainer.classList.remove('visible');
+          }, 200);
         }
         photoCardVisible = false;
         btn.textContent = 'Off';
@@ -708,24 +1149,185 @@
       const card = document.createElement('div');
       card.className = 'photo-card';
 
-      const plus = document.createElement('div');
-      plus.className = 'photo-card-plus';
-      plus.textContent = '+';
+      // Get current word
+      const currentWord = gameState.cards.map((c, i) => {
+        const letter = c.letters[c.currentIndex];
+        return applyCaseTransform(letter, 0).toLowerCase();
+      }).join('');
 
-      const inner = document.createElement('div');
-      inner.className = 'photo-card-label-inner';
-      inner.textContent = 'Photo';
+      // Check if current word has a photo
+      if (wordPhotos[currentWord]) {
+        // Display existing photo
+        const img = document.createElement('img');
+        img.src = wordPhotos[currentWord];
+        img.style.width = '100%';
+        img.style.height = '100%';
+        img.style.objectFit = 'cover';
+        img.style.borderRadius = '10px';
+        card.appendChild(img);
+        
+        // Add delete button (hidden by default)
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'photo-attach-btn has-photo';
+        deleteBtn.textContent = '×';
+        deleteBtn.style.fontSize = '24px';
+        deleteBtn.style.display = 'none'; // Hidden by default
+        deleteBtn.onclick = (e) => {
+          e.stopPropagation();
+          if (confirm(`Delete photo for "${currentWord}"?`)) {
+            delete wordPhotos[currentWord];
+            renderCards();
+          }
+        };
+        card.appendChild(deleteBtn);
+        
+        // Show delete button when photo card is clicked
+        card.style.cursor = 'pointer';
+        card.onclick = () => {
+          // Toggle delete button visibility
+          if (deleteBtn.style.display === 'none') {
+            deleteBtn.style.display = 'flex';
+          } else {
+            deleteBtn.style.display = 'none';
+          }
+        };
+      } else {
+        // Show attach button
+        const plus = document.createElement('div');
+        plus.className = 'photo-card-plus';
+        plus.textContent = '+';
 
-      card.appendChild(plus);
-      card.appendChild(inner);
+        const inner = document.createElement('div');
+        inner.className = 'photo-card-label-inner';
+        inner.textContent = 'Photo';
 
-      const label = document.createElement('div');
-      label.className = 'photo-card-label';
-      label.textContent = 'Image';
+        card.appendChild(plus);
+        card.appendChild(inner);
+        
+        // Detect device type
+        const isApple = /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent);
+        
+        // Paste area in bottom-right corner (all devices)
+        const pasteArea = document.createElement('div');
+        pasteArea.className = 'photo-paste-area';
+        pasteArea.innerHTML = `
+          <div class="photo-paste-icon">📋</div>
+          <div class="photo-paste-text">Paste</div>
+        `;
+        
+        // Long-press detection for Apple devices
+        let longPressTimer;
+        let pressStartTime;
+        
+        pasteArea.addEventListener('touchstart', (e) => {
+          if (isApple) {
+            pressStartTime = Date.now();
+            longPressTimer = setTimeout(() => {
+              // After 500ms hold, try to trigger native paste
+              e.target.focus();
+              document.execCommand('paste');
+            }, 500);
+          }
+        });
+        
+        pasteArea.addEventListener('touchend', (e) => {
+          if (isApple) {
+            clearTimeout(longPressTimer);
+            const pressDuration = Date.now() - pressStartTime;
+            
+            // If it was a quick tap (< 500ms), open file picker
+            if (pressDuration < 500) {
+              e.preventDefault();
+              e.stopPropagation();
+              attachPhotoToCurrentWord();
+            }
+          }
+        });
+        
+        pasteArea.addEventListener('touchcancel', () => {
+          if (isApple) {
+            clearTimeout(longPressTimer);
+          }
+        });
+        
+        // Click handler for non-touch devices (PC)
+        pasteArea.onclick = async (e) => {
+          e.stopPropagation();
+          
+          if (!isApple) {
+            // PC/Android: Try clipboard paste
+            const pasted = await tryPasteImage();
+            if (!pasted) {
+              alert('No image in clipboard. Please copy an image first.');
+            }
+          }
+          // Apple devices handled by touch events above
+        };
+        
+        card.appendChild(pasteArea);
+        
+        // Make main card area clickable for file upload
+        card.style.cursor = 'pointer';
+        card.onclick = (e) => {
+          // Don't trigger if clicking paste area
+          if (!e.target.closest('.photo-paste-area')) {
+            attachPhotoToCurrentWord();
+          }
+        };
+      }
 
       scene.appendChild(card);
-      scene.appendChild(label);
       wrapper.appendChild(scene);
+    }
+
+    async function tryPasteImage() {
+      try {
+        // Request clipboard permission explicitly
+        const permission = await navigator.permissions.query({ name: 'clipboard-read' });
+        
+        if (permission.state === 'denied') {
+          return false;
+        }
+
+        // Try modern Clipboard API
+        const clipboardItems = await navigator.clipboard.read();
+        
+        for (const item of clipboardItems) {
+          for (const type of item.types) {
+            if (type.startsWith('image/')) {
+              const blob = await item.getType(type);
+              const reader = new FileReader();
+              
+              reader.onload = (event) => {
+                const currentWord = getCurrentWord();
+                wordPhotos[currentWord] = event.target.result;
+                renderCards();
+              };
+              
+              reader.readAsDataURL(blob);
+              return true; // Successfully pasted
+            }
+          }
+        }
+        return false; // No image in clipboard
+      } catch (err) {
+        console.log('Paste failed:', err.message);
+        return false;
+      }
+    }
+
+    async function pasteImageFromClipboard() {
+      const pasted = await tryPasteImage();
+      if (!pasted) {
+        // Show platform-specific message
+        const isApple = /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent);
+        
+        if (isApple) {
+          alert('Paste not available on this device.\n\nPlease use the + Photo area to upload images from your Photos app instead.');
+        } else {
+          alert('No image in clipboard.\n\nPlease copy an image first, or use the + Photo area to upload.');
+        }
+      }
     }
 
     function toggleDropdown() {
@@ -826,7 +1428,7 @@
         if (cardData.isWide) {
           previewCard.classList.add('wide');
         }
-        previewCard.textContent = applyCaseTransform(letters[nextIndex]);
+        previewCard.textContent = applyCaseTransform(letters[nextIndex], cardIndex);
         
         // Notebook (current active card)
         const notebook = document.createElement('div');
@@ -838,12 +1440,12 @@
         // Front face (current letter)
         const faceFront = document.createElement('div');
         faceFront.className = 'face face-front';
-        faceFront.textContent = applyCaseTransform(letters[currentIndex]);
+        faceFront.textContent = applyCaseTransform(letters[currentIndex], cardIndex);
         
         // Back face (next letter)
         const faceBack = document.createElement('div');
         faceBack.className = 'face face-back';
-        faceBack.textContent = applyCaseTransform(letters[nextIndex]);
+        faceBack.textContent = applyCaseTransform(letters[nextIndex], cardIndex);
         
         notebook.appendChild(faceFront);
         notebook.appendChild(faceBack);
@@ -883,12 +1485,14 @@
         // Touch/Swipe handling
         let touchStartY = 0;
         let touchEndY = 0;
+        let touchStartTime = 0;
         let isSwiping = false;
         let touchStartedOnStack = false;
         
         scene.addEventListener('touchstart', (e) => {
           touchStartedOnStack = flippedStack.contains(e.target);
           touchStartY = e.touches[0].clientY;
+          touchStartTime = performance.now();
           isSwiping = false;
         });
         
@@ -899,9 +1503,10 @@
         scene.addEventListener('touchend', (e) => {
           if (touchStartedOnStack) return; // handled by flippedStack listener
           touchEndY = e.changedTouches[0].clientY;
+          const touchEndTime = performance.now();
           
           if (isSwiping) {
-            handleSwipe(cardIndex, notebook, touchStartY, touchEndY);
+            handleSwipe(cardIndex, notebook, touchStartY, touchEndY, touchStartTime, touchEndTime);
           } else {
             // Single tap without swipe - flip forward
             e.preventDefault();
@@ -919,28 +1524,49 @@
         wrapper.appendChild(scene);
       });
 
-      // Re-append photo card if it's toggled on (no animation on re-render)
+      // Update photo card if visible (separate container)
       if (photoCardVisible) {
-        appendPhotoCard(wrapper, false);
+        const photoContainer = document.getElementById('photoCardContainer');
+        const existingPhoto = photoContainer.querySelector('.photo-card-scene');
+        if (existingPhoto) {
+          photoContainer.removeChild(existingPhoto);
+        }
+        appendPhotoCard(photoContainer, false);
       }
     }
 
-    function handleSwipe(cardIndex, notebook, startY, endY) {
+    function handleSwipe(cardIndex, notebook, startY, endY, startTime, endTime) {
       const swipeDistance = startY - endY;
       const minSwipeDistance = 50;
       
       if (Math.abs(swipeDistance) > minSwipeDistance) {
+        // Calculate swipe velocity (pixels per millisecond)
+        const swipeTime = endTime - startTime;
+        const velocity = Math.abs(swipeDistance) / swipeTime;
+        
+        // Map velocity to animation duration
+        // Fast swipe (velocity > 2) = 200ms
+        // Medium swipe (velocity 0.5-2) = 300ms
+        // Slow swipe (velocity < 0.5) = 380ms
+        let duration = 380;
+        if (velocity > 2) {
+          duration = 200;
+        } else if (velocity > 0.5) {
+          duration = 300;
+        }
+        
         if (swipeDistance > 0) {
           // Swipe up - go forward
-          flipCardForward(cardIndex, notebook);
+          flipCardForward(cardIndex, notebook, duration);
         } else {
           // Swipe down - go backward
-          flipCardBackward(cardIndex);
+          flipCardBackward(cardIndex, duration);
         }
       }
     }
 
     let lastFlipTime = 0;
+    const lastClickTimes = {}; // Track last click time per card
     // Track which cards are mid-animation to prevent double-taps
     const animatingCards = new Set();
 
@@ -971,7 +1597,7 @@
       requestAnimationFrame(frame);
     }
 
-    function makeFlyCard(card, cardH, letter) {
+    function makeFlyCard(card, cardH, letter, cardIndex) {
       const flyCard = document.createElement('div');
       flyCard.className = `flying-card ${card.type}`;
       if (card.isWide) flyCard.classList.add('wide');
@@ -981,15 +1607,32 @@
       // Letter label inside — shown/hidden based on angle in the rAF loop
       const letterEl = document.createElement('span');
       letterEl.className = 'fly-letter';
-      letterEl.textContent = letter ? applyCaseTransform(letter) : '';
+      letterEl.textContent = letter ? applyCaseTransform(letter, cardIndex) : '';
       flyCard.appendChild(letterEl);
 
       return flyCard;
     }
 
-    function flipCardForward(cardIndex, notebook) {
+    function flipCardForward(cardIndex, notebook, duration) {
       if (animatingCards.has(cardIndex)) return;
       animatingCards.add(cardIndex);
+      
+      const now = performance.now();
+      
+      // If duration not provided (from swipe), calculate based on click speed
+      if (duration === undefined) {
+        const timeSinceLastClick = lastClickTimes[cardIndex] ? now - lastClickTimes[cardIndex] : 1000;
+        lastClickTimes[cardIndex] = now;
+        
+        // Rapid clicking (< 400ms) = faster animation
+        if (timeSinceLastClick < 400) {
+          duration = 200;
+        } else {
+          duration = 380;
+        }
+      }
+      
+      lastClickTimes[cardIndex] = now;
 
       const card = gameState.cards[cardIndex];
       const currentLetter = card.letters[card.currentIndex];
@@ -1004,16 +1647,16 @@
       // causes zero visible snap when the flying card lands
       const previewCard = scene.querySelector('.preview-card');
       const faceFront   = scene.querySelector('.face-front');
-      if (faceFront)   faceFront.textContent   = applyCaseTransform(nextLetter);
-      if (previewCard) previewCard.textContent = applyCaseTransform(afterNextLetter);
+      if (faceFront)   faceFront.textContent   = applyCaseTransform(nextLetter, cardIndex);
+      if (previewCard) previewCard.textContent = applyCaseTransform(afterNextLetter, cardIndex);
 
       // Forward: show letter below binding (0→90°), hide above (90→180°)
-      const flyCard = makeFlyCard(card, cardH, currentLetter);
+      const flyCard = makeFlyCard(card, cardH, currentLetter, cardIndex);
       const letterEl = flyCard.querySelector('.fly-letter');
       flyCard.style.transform = 'rotateX(0deg)';
       scene.appendChild(flyCard);
 
-      animateFlyCard(flyCard, 0, 180, 380, (deg) => {
+      animateFlyCard(flyCard, 0, 180, duration, (deg) => {
         // Hide letter once card passes the binding (90°)
         letterEl.style.visibility = deg < 90 ? 'visible' : 'hidden';
       }, () => {
@@ -1029,12 +1672,29 @@
       });
     }
 
-    function flipCardBackward(cardIndex) {
+    function flipCardBackward(cardIndex, duration) {
       if (animatingCards.has(cardIndex)) return;
       const card = gameState.cards[cardIndex];
       if (!card.flippedCards || card.flippedCards.length === 0) return;
 
       animatingCards.add(cardIndex);
+      
+      const now = performance.now();
+      
+      // If duration not provided (from swipe), calculate based on click speed
+      if (duration === undefined) {
+        const timeSinceLastClick = lastClickTimes[cardIndex] ? now - lastClickTimes[cardIndex] : 1000;
+        lastClickTimes[cardIndex] = now;
+        
+        // Rapid clicking (< 400ms) = faster animation
+        if (timeSinceLastClick < 400) {
+          duration = 200;
+        } else {
+          duration = 320;
+        }
+      }
+      
+      lastClickTimes[cardIndex] = now;
 
       const wrapper = document.getElementById('cardsWrapper');
       const scenes = wrapper.querySelectorAll('.card-scene');
@@ -1048,13 +1708,13 @@
 
         // Scene stays completely frozen during the animation.
         // Only update state + re-render once the card has fully landed.
-        const flyCard = makeFlyCard(card, cardH, returningLetter);
+        const flyCard = makeFlyCard(card, cardH, returningLetter, cardIndex);
         const letterEl = flyCard.querySelector('.fly-letter');
         letterEl.style.visibility = 'hidden';
         flyCard.style.transform = 'rotateX(180deg)';
         scene.appendChild(flyCard);
 
-        animateFlyCard(flyCard, 180, 0, 320, (deg) => {
+        animateFlyCard(flyCard, 180, 0, duration, (deg) => {
           letterEl.style.visibility = deg < 90 ? 'visible' : 'hidden';
         }, () => {
           if (flyCard.parentNode) flyCard.parentNode.removeChild(flyCard);
@@ -1098,6 +1758,45 @@
 
     // Initial render
     renderCards();
+
+    // Warn before leaving to prevent accidental exits
+    window.addEventListener('beforeunload', function(event) {
+      // Always show confirmation when trying to leave
+      event.preventDefault();
+      
+      // Custom message based on whether there are photos
+      const hasPhotos = Object.keys(wordPhotos).length > 0;
+      const confirmationMessage = hasPhotos 
+        ? 'You have unsaved photos. Are you sure you want to leave?' 
+        : 'Are you sure you want to leave?';
+      
+      event.returnValue = confirmationMessage;
+      return confirmationMessage;
+    });
+
+    // Global paste event listener for catching native paste from iOS context menu
+    document.addEventListener('paste', (e) => {
+      const items = e.clipboardData?.items;
+      
+      if (items) {
+        for (let i = 0; i < items.length; i++) {
+          if (items[i].type.startsWith('image/')) {
+            e.preventDefault();
+            const blob = items[i].getAsFile();
+            const reader = new FileReader();
+            
+            reader.onload = (event) => {
+              const currentWord = getCurrentWord();
+              wordPhotos[currentWord] = event.target.result;
+              renderCards();
+            };
+            
+            reader.readAsDataURL(blob);
+            break;
+          }
+        }
+      }
+    });
   </script>
 </body>
 </html>
