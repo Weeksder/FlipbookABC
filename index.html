@@ -1022,10 +1022,19 @@
   <div id="tracingPage" style="display:none;position:fixed;inset:0;z-index:50000;background:#fdf8f0;flex-direction:column;overflow:hidden;">
 
     <!-- Single combined header row: back | centred tabs | controls -->
-    <div style="display:flex;align-items:flex-end;padding:8px 12px 0;background:#8b6f47;flex-shrink:0;gap:8px;">
+    <div style="display:flex;align-items:flex-end;padding:8px 12px 0;background:#8b6f47;flex-shrink:0;">
 
-      <!-- Back button (left) -->
-      <button onclick="closeTracingPage()" style="background:rgba(255,255,255,0.15);border:none;color:white;font-size:1.3rem;width:40px;height:44px;border-radius:8px 8px 0 0;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-bottom:0;">←</button>
+      <!-- Back button — rectangular, inside brown bar -->
+      <button onclick="closeTracingPage()" style="
+        background:rgba(255,255,255,0.22);
+        border:1.5px solid rgba(255,255,255,0.55);
+        color:white;font-size:1rem;font-weight:700;
+        padding:7px 14px;height:40px;
+        border-radius:8px 8px 0 0;
+        cursor:pointer;flex-shrink:0;
+        display:flex;align-items:center;gap:5px;
+        -webkit-tap-highlight-color:transparent;
+      ">← Back</button>
 
       <!-- Centred tabs -->
       <div style="flex:1;display:flex;justify-content:center;align-items:flex-end;gap:6px;">
@@ -1045,8 +1054,8 @@
         ">Alphabet</button>
       </div>
 
-      <!-- Right controls (empty — erase moved to toolbar) -->
-      <div style="width:40px;flex-shrink:0;"></div>
+      <!-- Spacer to balance left side -->
+      <div style="width:80px;flex-shrink:0;"></div>
 
     </div>
 
@@ -1114,30 +1123,79 @@
       <!-- Right edge flash (clipped to notebook, covers arrow zone) -->
       <div id="tracingFlashRight" style="position:absolute;right:0;top:0;bottom:0;width:44px;pointer-events:none;z-index:20;opacity:0;background:rgba(139,111,71,0.45);"></div>
 
+      <!-- Floating cursor icon — tip anchored to tap point -->
+      <div id="tracingCursor" style="
+        position:absolute;pointer-events:none;z-index:25;
+        display:none;
+        filter:drop-shadow(0 1px 3px rgba(0,0,0,0.25));
+      ">
+        <!-- Pencil: tip drawn at bottom, rotated +45° so tip is bottom-right -->
+        <svg id="cursorIconDraw" width="58" height="58" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
+          <g transform="rotate(45 22 22)">
+            <!-- Eraser end (top) -->
+            <rect x="14" y="5" width="16" height="5" rx="1" fill="#f4a0a0" stroke="#2b2b2b" stroke-width="1.5"/>
+            <!-- Ferrule -->
+            <rect x="14" y="10" width="16" height="4" fill="#c8dce8" stroke="#2b2b2b" stroke-width="1.5"/>
+            <!-- Body -->
+            <rect x="14" y="14" width="16" height="18" rx="1" fill="#f5a623" stroke="#2b2b2b" stroke-width="1.5"/>
+            <!-- Highlight stripe -->
+            <rect x="17" y="14" width="5" height="18" fill="#ffc93c" stroke="none"/>
+            <!-- Tip wood trapezoid -->
+            <polygon points="14,32 30,32 27,39 17,39" fill="#f9d9a8" stroke="#2b2b2b" stroke-width="1.5" stroke-linejoin="round"/>
+            <!-- Tip sharp point -->
+            <polygon points="18,39 26,39 22,44" fill="#d4956a" stroke="#2b2b2b" stroke-width="1"/>
+          </g>
+        </svg>
+        <!-- Eraser at 45°, rubber bottom-left -->
+        <svg id="cursorIconErase" width="58" height="58" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg" style="display:none;">
+          <g transform="rotate(-45 22 22)">
+            <!-- Main body (blue) -->
+            <rect x="10" y="8" width="24" height="20" rx="3" fill="#a8d8f0" stroke="#2b2b2b" stroke-width="1.5"/>
+            <!-- White band -->
+            <rect x="10" y="25" width="24" height="4" fill="white" stroke="#2b2b2b" stroke-width="1"/>
+            <!-- Pink/red bottom (rubber) -->
+            <rect x="10" y="28" width="24" height="9" rx="2" fill="#e07070" stroke="#2b2b2b" stroke-width="1.5"/>
+          </g>
+        </svg>
+      </div>
+
       <!-- Tool toggle — top-left inside notepad -->
-      <div id="tracingToolToggle" style="position:absolute;left:50px;top:10px;z-index:15;display:flex;border-radius:10px;overflow:hidden;border:2px solid #c8b89a;box-shadow:0 1px 4px rgba(0,0,0,0.12);">
+      <div id="tracingToolToggle" style="position:absolute;left:50px;top:10px;z-index:15;display:flex;border-radius:12px;overflow:hidden;border:2px solid #c8b89a;box-shadow:0 2px 6px rgba(0,0,0,0.15);">
         <!-- Pencil side -->
         <button id="tracingToolDraw" onclick="setTracingTool('draw')" style="
-          width:38px;height:34px;border:none;cursor:pointer;
-          background:#8b6f47;
+          width:52px;height:46px;border:none;cursor:pointer;
+          background:#fff3c0;
           display:flex;align-items:center;justify-content:center;
           -webkit-tap-highlight-color:transparent;outline:none;
         ">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+          <!-- Pencil: tip at bottom, rotated +45° → tip points down-right -->
+          <svg width="30" height="30" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
+            <g transform="rotate(45 22 22)">
+              <rect x="14" y="5" width="16" height="5" rx="1" fill="#f4a0a0" stroke="#2b2b2b" stroke-width="1.5"/>
+              <rect x="14" y="10" width="16" height="4" fill="#c8dce8" stroke="#2b2b2b" stroke-width="1.5"/>
+              <rect x="14" y="14" width="16" height="18" rx="1" fill="#f5a623" stroke="#2b2b2b" stroke-width="1.5"/>
+              <rect x="17" y="14" width="5" height="18" fill="#ffc93c" stroke="none"/>
+              <polygon points="14,32 30,32 27,39 17,39" fill="#f9d9a8" stroke="#2b2b2b" stroke-width="1.5" stroke-linejoin="round"/>
+              <polygon points="18,39 26,39 22,44" fill="#d4956a" stroke="#2b2b2b" stroke-width="1"/>
+            </g>
           </svg>
         </button>
         <!-- Divider -->
         <div style="width:1px;background:#c8b89a;flex-shrink:0;"></div>
         <!-- Eraser side -->
         <button id="tracingToolErase" onclick="setTracingTool('erase')" style="
-          width:38px;height:34px;border:none;cursor:pointer;
-          background:white;
+          width:52px;height:46px;border:none;cursor:pointer;
+          background:#f0f0f0;
           display:flex;align-items:center;justify-content:center;
           -webkit-tap-highlight-color:transparent;outline:none;
         ">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c8b89a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M20 20H7L3 16l10-10 7 7-3.5 3.5"/><path d="M6.5 17.5l3-3"/>
+          <!-- Eraser: 45°, rubber bottom-left -->
+          <svg width="28" height="28" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
+            <g transform="rotate(-45 22 22)">
+              <rect x="10" y="8" width="24" height="20" rx="3" fill="#a8d8f0" stroke="#2b2b2b" stroke-width="1.5"/>
+              <rect x="10" y="25" width="24" height="4" fill="white" stroke="#2b2b2b" stroke-width="1"/>
+              <rect x="10" y="28" width="24" height="9" rx="2" fill="#e07070" stroke="#2b2b2b" stroke-width="1.5"/>
+            </g>
           </svg>
         </button>
       </div>
@@ -2422,11 +2480,14 @@
       ctx.clearRect(0, 0, W, H);
 
       // Clear user strokes and hide clear button on fresh redraw
-      tracingStrokes = [];
-      const eraseBtn = document.getElementById('tracingEraseBtn');
-      if (eraseBtn) eraseBtn.style.display = 'none';
-      tracingToolMode = 'draw';
-      setTracingTool('draw');
+      // But don't reset tool when called from replayStrokes
+      if (!tracingReplayMode) {
+        tracingStrokes = [];
+        const eraseBtn = document.getElementById('tracingEraseBtn');
+        if (eraseBtn) eraseBtn.style.display = 'none';
+        tracingToolMode = 'draw';
+        setTracingTool('draw');
+      }
 
       // White paper
       ctx.fillStyle = '#ffffff';
@@ -2579,13 +2640,34 @@
         return { x: src.clientX - rect.left, y: src.clientY - rect.top };
       }
 
+      function showCursor(x, y, isTouch) {
+        const cursor = document.getElementById('tracingCursor');
+        if (!cursor) return;
+        cursor.style.display = '';
+        cursor.style.left = x + 'px';
+        cursor.style.top  = y + 'px';
+        const isErase = tracingToolMode === 'erase';
+        if (isErase) {
+          // Eraser: bottom-right corner at contact point
+          cursor.style.transform = 'translate(-100%, -100%)';
+        } else {
+          // Pencil: bottom-left corner at contact point
+          cursor.style.transform = 'translate(0px, -100%)';
+        }
+      }
+
+      function hideCursor() {
+        const cursor = document.getElementById('tracingCursor');
+        if (cursor) cursor.style.display = 'none';
+      }
+
       function startDraw(e) {
         e.preventDefault();
         tracingDrawing = true;
         const p = getPos(e);
         tracingLastX = p.x; tracingLastY = p.y;
-        // Pick color based on which letter zone we're in
         pickColorForPosition(p.x);
+        showCursor(p.x, p.y, !!e.touches);
       }
 
       function moveDraw(e) {
@@ -2594,10 +2676,12 @@
         const p = getPos(e);
         paintStroke(tracingLastX, tracingLastY, p.x, p.y);
         tracingLastX = p.x; tracingLastY = p.y;
+        showCursor(p.x, p.y, !!e.touches);
       }
 
       function endDraw(e) {
         tracingDrawing = false;
+        hideCursor();
       }
 
       c.addEventListener('mousedown',  startDraw);
@@ -2621,8 +2705,9 @@
       tracingColorIdx = Math.max(0, Math.min(letterIdx, tracingColors.length - 1));
     }
 
-    let tracingToolMode = 'draw';
-    let tracingStrokes  = []; // stores all user strokes for smart erase
+    let tracingReplayMode = false;
+    let tracingToolMode   = 'draw';
+    let tracingStrokes    = [];
 
     function setTracingTool(mode) {
       tracingToolMode = mode;
@@ -2630,22 +2715,29 @@
       const eraseBtn = document.getElementById('tracingToolErase');
       if (!drawBtn || !eraseBtn) return;
       if (mode === 'draw') {
-        drawBtn.style.background  = '#8b6f47';
-        drawBtn.querySelector('svg').setAttribute('stroke', 'white');
-        eraseBtn.style.background = 'white';
-        eraseBtn.querySelector('svg').setAttribute('stroke', '#c8b89a');
+        drawBtn.style.background  = '#fff3c0';
+        drawBtn.style.opacity     = '1';
+        eraseBtn.style.background = '#f0f0f0';
+        eraseBtn.style.opacity    = '1';
       } else {
-        eraseBtn.style.background = '#c8856a';
-        eraseBtn.querySelector('svg').setAttribute('stroke', 'white');
-        drawBtn.style.background  = 'white';
-        drawBtn.querySelector('svg').setAttribute('stroke', '#c8b89a');
+        eraseBtn.style.background = '#ffe0e0';
+        eraseBtn.style.opacity    = '1';
+        drawBtn.style.background  = '#f0f0f0';
+        drawBtn.style.opacity     = '1';
       }
+      // Swap cursor icon
+      const cDraw  = document.getElementById('cursorIconDraw');
+      const cErase = document.getElementById('cursorIconErase');
+      if (cDraw)  cDraw.style.display  = mode === 'draw'  ? '' : 'none';
+      if (cErase) cErase.style.display = mode === 'erase' ? '' : 'none';
     }
 
     function replayStrokes() {
-      const saved = tracingStrokes.slice(); // snapshot before drawTracingPage clears it
+      const saved = tracingStrokes.slice();
+      tracingReplayMode = true;
       drawTracingPage();
-      tracingStrokes = saved; // restore
+      tracingReplayMode = false;
+      tracingStrokes = saved;
       const ctx = tracingCtx;
       if (!ctx) return;
       tracingStrokes.forEach(s => {
@@ -2661,7 +2753,6 @@
         ctx.stroke();
         ctx.globalAlpha = 1;
       });
-      // Restore clear button visibility if strokes remain
       const clearBtn = document.getElementById('tracingEraseBtn');
       if (clearBtn) clearBtn.style.display = tracingStrokes.length > 0 ? 'inline-flex' : 'none';
     }
@@ -2671,7 +2762,7 @@
       if (!ctx) return;
 
       if (tracingToolMode === 'erase') {
-        const eraseR = 18; // erase radius — removes strokes within this distance
+        const eraseR = 60; // erase radius
         const prevLen = tracingStrokes.length;
         tracingStrokes = tracingStrokes.filter(s => {
           // Check if stroke segment is near the erase path
