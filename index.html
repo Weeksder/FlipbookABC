@@ -1061,7 +1061,7 @@
       <label id="tracingWordLabel" style="font-size:0.78rem;font-weight:700;color:#8b6f47;white-space:nowrap;">Word:</label>
       <input id="tracingWordInput" type="text" maxlength="6" placeholder="e.g. cat"
         autocapitalize="none" autocorrect="off" autocomplete="off" spellcheck="false"
-        style="font-family:'Comic Sans MS', 'Chalkboard SE', cursive;font-size:1rem;font-weight:700;color:#5a4a32;padding:4px 9px;border:2px solid #c8b89a;border-radius:8px;background:white;outline:none;width:80px;"
+        style="font-family:'Comic Sans MS', 'Chalkboard SE', cursive;font-size:1rem;font-weight:700;color:#5a4a32;padding:4px 9px;border:2px solid #c8b89a;border-radius:8px;background:white;outline:none;width:100px;"
         oninput="onTracingWordInput(this.value)">
 
       <!-- + | Select | aa — grouped together right after Word field -->
@@ -2741,7 +2741,7 @@
     }
 
     function pickColorForPosition(x) {
-      // Both alphabet and DIY use a single random colour per word — skip position-based colouring
+      // Both modes use a single shuffle-queue colour per word — no position-based override
       return;
     }
 
