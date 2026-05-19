@@ -2849,16 +2849,11 @@
       tracingWordIndex = (idx + tracingWordList.length) % tracingWordList.length;
       const word = tracingWordList[tracingWordIndex];
       tracingWord = word.toLowerCase().replace(/[^a-z]/g, '').slice(0, 6);
-      // Only sync word input field in manual mode
       if (tracingMode !== 'alphabet') {
         const inp = document.getElementById('tracingWordInput');
-        if (inp) {
-          inp.value = tracingWord;
-          
-        }
+        if (inp) inp.value = tracingWord;
       }
       updateWheelDisplay();
-      randomTracingColor();
       drawTracingPage();
     }
 
@@ -2883,10 +2878,11 @@
         alphabetIndex = (alphabetIndex + dir + ALPHABET_LIST.length) % ALPHABET_LIST.length;
         tracingWord = ALPHABET_LIST[alphabetIndex];
         updateWheelDisplay();
-      randomTracingColor();
+        randomTracingColor();
         drawTracingPage();
       } else {
         if (tracingWordList.length === 0) return;
+        randomTracingColor();
         setTracingWordFromList(tracingWordIndex + dir);
       }
     }
@@ -2899,13 +2895,13 @@
         tracingMode = 'manual';
         updateTracingModeButtons('manual');
         if (tracingWordList.length > 0) {
+          randomTracingColor();
           setTracingWordFromList(tracingWordIndex);
         } else {
           tracingWord = '';
           const inp = document.getElementById('tracingWordInput');
           if (inp) { inp.value = ''; }
           updateWheelDisplay();
-      randomTracingColor();
           drawTracingPage();
         }
       }
@@ -3139,6 +3135,7 @@
       tracingWordIndex = 0;
       closeManualWordPanel();
       updateTracingModeButtons('manual');
+      randomTracingColor();
       setTracingWordFromList(0);
       // Show shuffle button now that list has words
       const shuffleBtn = document.getElementById('tracingShuffleDIY');
@@ -3146,8 +3143,9 @@
     }
 
     // ── Shuffle ───────────────────────────────────────────────────────────
-    let tracingShuffled     = false;
-    let tracingShuffledList = [];
+    let tracingShuffled      = false;
+    let tracingShuffledList  = [];
+    let tracingShuffledIndex = 0; // position within shuffled list
 
     const ICON_SHUFFLE   = `<polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/>`;
     const ICON_UNSHUFFLE = `<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>`;
@@ -3179,28 +3177,32 @@
       if (tracingShuffled) {
         const src = tracingMode === 'alphabet' ? ALPHABET_LIST : tracingWordList;
         tracingShuffledList = fisherYates(src);
-        // DIY only: jump to first item; Alphabet: stay on current letter
-        if (tracingMode !== 'alphabet') {
-          tracingWordIndex = tracingWordList.indexOf(tracingShuffledList[0]);
-          randomTracingColor();
-          drawTracingPage();
+        tracingShuffledIndex = 0;
+        const word = tracingShuffledList[0];
+        if (tracingMode === 'alphabet') {
+          tracingWord   = word;
+          alphabetIndex = ALPHABET_LIST.indexOf(word);
+        } else {
+          const origIdx = tracingWordList.indexOf(word);
+          tracingWordIndex = origIdx >= 0 ? origIdx : 0;
+          tracingWord = tracingWordList[tracingWordIndex];
+          const inp = document.getElementById('tracingWordInput');
+          if (inp) inp.value = tracingWord;
         }
+        updateWheelDisplay();
+        randomTracingColor();
+        drawTracingPage();
       } else {
-        tracingShuffledList = [];
+        tracingShuffledList  = [];
+        tracingShuffledIndex = 0;
       }
       updateShuffleBtn();
-      if (tracingShuffled && tracingMode === 'alphabet') {
-        // No redraw — just reorder future navigation silently
-        return;
-      }
-      if (!tracingShuffled) {
-        drawTracingPage();
-      }
     }
 
     function resetShuffle() {
-      tracingShuffled     = false;
-      tracingShuffledList = [];
+      tracingShuffled      = false;
+      tracingShuffledList  = [];
+      tracingShuffledIndex = 0;
       updateShuffleBtn();
     }
 
@@ -3211,17 +3213,15 @@
         tracingNav(dir);
         return;
       }
-      const list = tracingShuffledList;
+      tracingShuffledIndex = (tracingShuffledIndex + dir + tracingShuffledList.length) % tracingShuffledList.length;
+      const word = tracingShuffledList[tracingShuffledIndex];
       if (tracingMode === 'alphabet') {
-        const idx  = list.indexOf(tracingWord);
-        const next = (idx + dir + list.length) % list.length;
-        tracingWord   = list[next];
-        alphabetIndex = ALPHABET_LIST.indexOf(tracingWord);
+        tracingWord   = word;
+        alphabetIndex = ALPHABET_LIST.indexOf(word);
       } else {
-        const cur  = tracingWordList[tracingWordIndex] || '';
-        const idx  = list.indexOf(cur);
-        const next = (idx + dir + list.length) % list.length;
-        tracingWordIndex = tracingWordList.indexOf(list[next]);
+        const origIdx = tracingWordList.indexOf(word);
+        tracingWordIndex = origIdx >= 0 ? origIdx : 0;
+        tracingWord = tracingWordList[tracingWordIndex];
       }
       updateWheelDisplay();
       randomTracingColor();
@@ -3331,9 +3331,10 @@
         alphabetIndex = wheelPendingIndex;
         tracingWord   = ALPHABET_LIST[alphabetIndex];
         updateWheelDisplay();
-      randomTracingColor();
+        randomTracingColor();
         drawTracingPage();
       } else {
+        randomTracingColor();
         setTracingWordFromList(wheelPendingIndex);
       }
       closeScrollWheel();
