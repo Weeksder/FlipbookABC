@@ -132,7 +132,7 @@
     --stack-h:         24vw;
     --wrapper-pad-top: 26vw;
     --wrapper-pad-x:   2vw;
-    --wrapper-pad-bot: 4vw;
+    --wrapper-pad-bot: 7vw;
     --ring-w:          2.4vw;
     --ring-h:          3.2vw;
     --ring-gap:        1.4vw;
@@ -154,7 +154,7 @@
       --stack-h:         30vh;
       --wrapper-pad-top: 32vh;
       --wrapper-pad-x:   1.5vh;
-      --wrapper-pad-bot: 3vh;
+      --wrapper-pad-bot: 7vh;
       --ring-w:          2.8vh;
       --ring-h:          3.8vh;
       --ring-gap:        1.5vh;
@@ -177,7 +177,7 @@
       --stack-h:         24vw;
       --wrapper-pad-top: 26vw;
       --wrapper-pad-x:   2vw;
-      --wrapper-pad-bot: 4vw;
+      --wrapper-pad-bot: 7vw;
       --ring-w:          2.4vw;
       --ring-h:          3.2vw;
       --ring-gap:        1.4vw;
@@ -200,7 +200,7 @@
       --stack-h:         39vh;
       --wrapper-pad-top: 42vh;
       --wrapper-pad-x:   2vh;
-      --wrapper-pad-bot: 4vh;
+      --wrapper-pad-bot: 7vh;
       --ring-w:          3.5vh;
       --ring-h:          4.8vh;
       --ring-gap:        1.8vh;
@@ -223,7 +223,7 @@
       --stack-h:         34vh;
       --wrapper-pad-top: 37vh;
       --wrapper-pad-x:   2vh;
-      --wrapper-pad-bot: 4vh;
+      --wrapper-pad-bot: 7vh;
       --ring-w:          3.2vh;
       --ring-h:          4.2vh;
       --ring-gap:        1.6vh;
@@ -286,9 +286,9 @@
     justify-content: center;
     align-items: flex-start;
     position: relative;
-    background: rgba(210, 180, 140, 0.3);
+    background: transparent;
     padding: var(--wrapper-pad-top) var(--wrapper-pad-x) var(--wrapper-pad-bot);
-    border-radius: 15px;
+    border-radius: 15px 15px 18px 18px;
     max-width: fit-content;
     overflow: visible;
   }
@@ -465,9 +465,27 @@
     display: flex;
     align-items: center;
     gap: 0.35em;
+    /* Piano key tab styling */
+    background: white;
+    border: 2px solid #c8b89a;
+    border-radius: 0 0 10px 10px;
+    padding: 4px 12px 6px;
+    box-shadow: 0 3px 0 #c8b89a, 0 4px 6px rgba(0,0,0,0.12);
+    transition: transform 0.08s, box-shadow 0.08s, background 0.08s;
+    cursor: pointer;
+    min-width: 80px;
+    justify-content: center;
+    -webkit-tap-highlight-color: transparent;
   }
 
-  /* Dot — all devices */
+  /* Press-down effect */
+  .card-label:active, .card-label.key-pressed {
+    transform: translateX(-50%) translateY(3px);
+    box-shadow: 0 0 0 #c8b89a, 0 1px 3px rgba(0,0,0,0.1);
+    background: #fff8f0;
+  }
+
+  /* Active (green dot) */
   .card-label::before {
     content: '';
     display: inline-block;
@@ -1444,8 +1462,8 @@
     </div>
   </div>
   <script>
-    const consonants = ['b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'q', 'r', 's', 't', 'v', 'w', 'x', 'y', 'z'];
-    const vowels = ['a', 'e', 'i', 'o', 'u'];
+    const consonants = ['_', 'b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'q', 'r', 's', 't', 'v', 'w', 'x', 'y', 'z'];
+    const vowels = ['_', 'a', 'e', 'i', 'o', 'u'];
     
     // Case toggle functionality
     const CASE_MODES = ['lower', 'UPPER', 'Sentence'];
@@ -2238,8 +2256,32 @@
 
     // ── Embedded Card Scroll Wheel ────────────────────────────────────────
     const CARD_WHEEL_H = 44;
-    let cardWheelCardIndex = null;
-    let cardWheelSnapTimeout = null;
+    let cardWheelCardIndex      = null;
+    let cardWheelSnapTimeout    = null;
+    let cardWheelDragging       = false;
+    let cardWheelDragStartY     = 0;
+    let cardWheelDragScrollStart = 0;
+
+    let cardWheelJustDragged = false;
+
+    function onCardWheelMouseMove(e) {
+      if (!cardWheelDragging) return;
+      const list = document.getElementById('cardWheelList');
+      if (!list) return;
+      const dy = e.clientY - cardWheelDragStartY;
+      list.scrollTop = cardWheelDragScrollStart - dy;
+      onCardWheelScroll();
+    }
+
+    function onCardWheelMouseUp() {
+      if (!cardWheelDragging) return;
+      cardWheelDragging    = false;
+      cardWheelJustDragged = true;
+      // Clear the flag after the click event fires
+      setTimeout(() => { cardWheelJustDragged = false; }, 50);
+      const list = document.getElementById('cardWheelList');
+      if (list) list.style.cursor = 'grab';
+    }
 
     function openCardWheel(cardIndex) {
       cardWheelCardIndex = cardIndex;
@@ -2259,7 +2301,7 @@
           justify-content:center;font-family:Arial,sans-serif;font-weight:700;
           color:${i === card.currentIndex ? '#8b6f47' : '#c8b89a'};
           font-size:${i === card.currentIndex ? '1.5rem' : '1.15rem'};
-          cursor:pointer;transition:color 0.1s,font-size 0.1s;`;
+          cursor:pointer;transition:color 0.1s,font-size 0.1s;user-select:none;`;
         item.textContent = applyCaseTransform(letter, cardIndex);
         item.dataset.index = i;
         item.addEventListener('click', () => jumpCardWheelTo(i));
@@ -2269,6 +2311,23 @@
       const padBot = document.createElement('div');
       padBot.style.height = padH + 'px';
       list.appendChild(padBot);
+
+      // Mouse wheel — fluid scroll
+      list.onwheel = (e) => {
+        e.preventDefault();
+        list.scrollTop += (e.deltaY || 0) * 0.8;
+        onCardWheelScroll();
+      };
+
+      // Click-drag scroll
+      list.style.cursor = 'grab';
+      list.onmousedown = (e) => {
+        cardWheelDragging = true;
+        cardWheelDragStartY = e.clientY;
+        cardWheelDragScrollStart = list.scrollTop;
+        list.style.cursor = 'grabbing';
+        e.preventDefault();
+      };
 
       wheel.style.display = 'block';
       requestAnimationFrame(() => {
@@ -2294,22 +2353,20 @@
       card.currentIndex = idx;
       card.flippedCards = [];
 
-      // Update card face text directly — preserves photo button, no flicker
+      // Update card face — complete textContent replacement prevents ghost artifacts
       const scenes = document.querySelectorAll('.card-scene');
       const scene  = scenes[cardWheelCardIndex];
       if (scene) {
         const faceFront = scene.querySelector('.face-front');
         if (faceFront) {
-          const newText = applyCaseTransform(card.letters[idx], cardWheelCardIndex);
+          const newText  = applyCaseTransform(card.letters[idx], cardWheelCardIndex);
           const photoBtn = faceFront.querySelector('.card-photo-btn');
-          // Clear only text nodes, keep child elements
-          [...faceFront.childNodes].forEach(n => { if (n.nodeType === 3) n.textContent = ''; });
-          if (!faceFront.querySelector('.card-letter-text')) {
-            const span = document.createElement('span');
-            span.className = 'card-letter-text';
-            faceFront.insertBefore(span, faceFront.firstChild);
-          }
-          faceFront.querySelector('.card-letter-text').textContent = newText;
+          faceFront.textContent = newText;
+          if (photoBtn) faceFront.appendChild(photoBtn);
+          // Force GPU repaint to clear sub-pixel rendering trails (e.g. from '_')
+          faceFront.style.transform = 'translateZ(0)';
+          void faceFront.offsetHeight; // trigger reflow
+          faceFront.style.transform = '';
         }
       }
 
@@ -2327,21 +2384,26 @@
     function onCardWheelScroll() {
       const list = document.getElementById('cardWheelList');
       const idx  = Math.max(0, Math.round(list.scrollTop / CARD_WHEEL_H));
+      applyCardWheelIndex(idx);
       clearTimeout(cardWheelSnapTimeout);
       cardWheelSnapTimeout = setTimeout(() => {
         list.scrollTo({ top: idx * CARD_WHEEL_H, behavior: 'smooth' });
-        applyCardWheelIndex(idx);
       }, 150);
     }
 
-    // Close when tapping outside the wheel or labels
+    // Close when tapping outside the wheel or labels (but not after a drag)
     document.addEventListener('click', (e) => {
+      if (cardWheelJustDragged) return;
       const wheel = document.getElementById('cardWheel');
       if (wheel && wheel.style.display !== 'none' &&
           !wheel.contains(e.target) && !e.target.closest('.card-label')) {
         closeCardWheel();
       }
     });
+
+    // Global mouse drag handlers for card wheel
+    window.addEventListener('mousemove', onCardWheelMouseMove);
+    window.addEventListener('mouseup',   onCardWheelMouseUp);
 
     function resetAllCards() {
       gameState.cards.forEach(card => {
@@ -2512,9 +2574,16 @@
         label.className = 'card-label';
         label.textContent = cardData.label;
         label.style.cssText = 'background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:6px;-webkit-tap-highlight-color:transparent;';
-        label.addEventListener('click', (e) => { e.stopPropagation(); openCardWheel(cardIndex); });
+        label.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openCardWheel(cardIndex);
+        });
         label.addEventListener('touchstart', (e) => { e.stopPropagation(); }, { passive: true });
-        label.addEventListener('touchend', (e) => { e.stopPropagation(); e.preventDefault(); openCardWheel(cardIndex); });
+        label.addEventListener('touchend', (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          openCardWheel(cardIndex);
+        });
         
         scene.appendChild(flippedStack);
         scene.appendChild(binding);
@@ -2689,6 +2758,7 @@
 
     function flipCardForward(cardIndex, notebook, duration) {
       if (animatingCards.has(cardIndex)) return;
+      closeCardWheel();
       animatingCards.add(cardIndex);
       
       const now = performance.now();
@@ -2751,6 +2821,7 @@
 
     function flipCardBackward(cardIndex, duration) {
       if (animatingCards.has(cardIndex)) return;
+      closeCardWheel();
       const card = gameState.cards[cardIndex];
 
       animatingCards.add(cardIndex);
