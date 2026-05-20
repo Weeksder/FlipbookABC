@@ -1028,11 +1028,11 @@
 
         <!-- Embedded card scroll wheel — sits just left of the card stack -->
         <div id="cardWheel" style="
-          display:none;position:absolute;left:-76px;top:50%;transform:translateY(-50%);
+          display:none;position:absolute;left:-52px;top:50%;transform:translateY(-50%);
           background:linear-gradient(135deg,#f5e6d3 0%,#e8d4b8 100%);
           border-radius:16px;
           box-shadow:0 6px 24px rgba(0,0,0,0.22);
-          width:68px;z-index:200;overflow:hidden;
+          width:46px;z-index:200;overflow:hidden;
         ">
           <div style="position:relative;height:176px;overflow:hidden;">
             <div style="position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);
@@ -2247,26 +2247,28 @@
       const wheel = document.getElementById('cardWheel');
       const list  = document.getElementById('cardWheelList');
       list.innerHTML = '';
-
-      // Top padding for centering
-      const pad = document.createElement('div');
-      pad.style.height = (CARD_WHEEL_H * 2) + 'px';
-      list.appendChild(pad.cloneNode(true));
+      // Padding = half the visible window height so first/last items can centre
+      const padH = 176 / 2 - CARD_WHEEL_H / 2; // = 66px
+      const padTop = document.createElement('div');
+      padTop.style.height = padH + 'px';
+      list.appendChild(padTop);
 
       card.letters.forEach((letter, i) => {
         const item = document.createElement('div');
         item.style.cssText = `height:${CARD_WHEEL_H}px;display:flex;align-items:center;
-          justify-content:center;font-family:'Comic Sans MS',cursive;font-weight:700;
+          justify-content:center;font-family:Arial,sans-serif;font-weight:700;
           color:${i === card.currentIndex ? '#8b6f47' : '#c8b89a'};
           font-size:${i === card.currentIndex ? '1.5rem' : '1.15rem'};
-          scroll-snap-align:center;cursor:pointer;transition:color 0.1s,font-size 0.1s;`;
+          cursor:pointer;transition:color 0.1s,font-size 0.1s;`;
         item.textContent = applyCaseTransform(letter, cardIndex);
         item.dataset.index = i;
         item.addEventListener('click', () => jumpCardWheelTo(i));
         list.appendChild(item);
       });
 
-      list.appendChild(pad.cloneNode(true));
+      const padBot = document.createElement('div');
+      padBot.style.height = padH + 'px';
+      list.appendChild(padBot);
 
       wheel.style.display = 'block';
       requestAnimationFrame(() => {
@@ -2291,22 +2293,40 @@
       if (idx < 0 || idx >= card.letters.length) return;
       card.currentIndex = idx;
       card.flippedCards = [];
-      // Highlight in wheel without full re-render
+
+      // Update card face text directly — preserves photo button, no flicker
+      const scenes = document.querySelectorAll('.card-scene');
+      const scene  = scenes[cardWheelCardIndex];
+      if (scene) {
+        const faceFront = scene.querySelector('.face-front');
+        if (faceFront) {
+          const newText = applyCaseTransform(card.letters[idx], cardWheelCardIndex);
+          const photoBtn = faceFront.querySelector('.card-photo-btn');
+          // Clear only text nodes, keep child elements
+          [...faceFront.childNodes].forEach(n => { if (n.nodeType === 3) n.textContent = ''; });
+          if (!faceFront.querySelector('.card-letter-text')) {
+            const span = document.createElement('span');
+            span.className = 'card-letter-text';
+            faceFront.insertBefore(span, faceFront.firstChild);
+          }
+          faceFront.querySelector('.card-letter-text').textContent = newText;
+        }
+      }
+
+      // Update wheel highlight
       const list = document.getElementById('cardWheelList');
-      list.querySelectorAll('[data-index]').forEach(item => {
-        const i = parseInt(item.dataset.index);
-        item.style.color    = i === idx ? '#8b6f47' : '#c8b89a';
-        item.style.fontSize = i === idx ? '1.5rem'  : '1.15rem';
-      });
-      const savedIdx = cardWheelCardIndex;
-      renderCards();
-      // Re-open wheel on the same card after renderCards rebuilds DOM
-      requestAnimationFrame(() => openCardWheel(savedIdx));
+      if (list) {
+        list.querySelectorAll('[data-index]').forEach(item => {
+          const i = parseInt(item.dataset.index);
+          item.style.color    = i === idx ? '#8b6f47' : '#c8b89a';
+          item.style.fontSize = i === idx ? '1.5rem'  : '1.15rem';
+        });
+      }
     }
 
     function onCardWheelScroll() {
       const list = document.getElementById('cardWheelList');
-      const idx  = Math.round(list.scrollTop / CARD_WHEEL_H);
+      const idx  = Math.max(0, Math.round(list.scrollTop / CARD_WHEEL_H));
       clearTimeout(cardWheelSnapTimeout);
       cardWheelSnapTimeout = setTimeout(() => {
         list.scrollTo({ top: idx * CARD_WHEEL_H, behavior: 'smooth' });
