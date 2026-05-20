@@ -54,14 +54,17 @@
       flex: 1;
       width: 0; /* let flex handle it */
     }
-    /* Stack dropdown below other buttons */
+    /* In landscape sidebar, open to the right */
     .dropdown-content {
       right: auto;
       left: 100%;
+      bottom: auto;
       top: 0;
-      margin-top: 0;
       margin-left: 5px;
+      flex-direction: column;
     }
+    .dropdown-content button:first-child { border-radius: 8px 8px 0 0; }
+    .dropdown-content button:last-child  { border-radius: 0 0 8px 8px; }
   }
 
   /* Case Toggle Button */
@@ -95,19 +98,22 @@
     background: #8b6f47; color: white;
   }
   .dropdown-content {
-    display: none; position: absolute; right: 0; margin-top: 5px;
-    background: white; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    display: none; position: absolute; right: 0;
+    bottom: calc(100% + 5px); top: auto;
+    background: white; border-radius: 8px; box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
     min-width: 160px; z-index: 1100;
+    flex-direction: column-reverse;
   }
-  .dropdown-content.show { display: block; }
+  .dropdown-content.show { display: flex; }
   .dropdown-content button {
     display: block; width: 100%; padding: 10px 14px; border: none;
     background: white; color: #333; font-size: 0.85rem; font-weight: 600;
     text-align: left; cursor: pointer; transition: background 0.2s;
   }
-  .dropdown-content button:first-child { border-radius: 8px 8px 0 0; }
-  .dropdown-content button:last-child { border-radius: 0 0 8px 8px; }
+  .dropdown-content button:first-child { border-radius: 0 0 8px 8px; }
+  .dropdown-content button:last-child { border-radius: 8px 8px 0 0; }
   .dropdown-content button:hover { background: #f0f0f0; }
+  .dropdown-content div { order: 0; }
 
   /*
    * Fluid sizing system — sized to fill the screen like the reference image
@@ -461,21 +467,19 @@
     gap: 0.35em;
   }
 
-  /* Dot — desktop only */
-  @media (pointer: fine) {
-    .card-label::before {
-      content: '';
-      display: inline-block;
-      width: 0.45em;
-      height: 0.45em;
-      border-radius: 50%;
-      background: #b0a090;
-      flex-shrink: 0;
-      transition: background 0.2s;
-    }
-    .card-label.active-card::before {
-      background: #4CAF50;
-    }
+  /* Dot — all devices */
+  .card-label::before {
+    content: '';
+    display: inline-block;
+    width: 0.45em;
+    height: 0.45em;
+    border-radius: 50%;
+    background: #b0a090;
+    flex-shrink: 0;
+    transition: background 0.2s;
+  }
+  .card-label.active-card::before {
+    background: #4CAF50;
   }
 
   /* Flipped state */
@@ -987,6 +991,7 @@
           <div class="settings-row">
             <span class="settings-label">Photo</span>
             <div style="display:flex;gap:4px;">
+              <button class="settings-toggle-btn" id="photoBtnOff" onclick="setPhotoMode('off')">Off</button>
               <button class="settings-toggle-btn" id="photoBtnIn"  onclick="setPhotoMode('in')">In</button>
               <button class="settings-toggle-btn" id="photoBtnOut" onclick="setPhotoMode('out')">Out</button>
             </div>
@@ -994,13 +999,22 @@
         </div>
       </div>
 
+      <!-- Pattern selector / Customize button -->
+      <button class="settings-btn" onclick="openHelpModal()" aria-label="Word Patterns">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="4" y1="6" x2="20" y2="6"/>
+          <circle cx="15" cy="6" r="2.2" fill="white" stroke="currentColor" stroke-width="2.2"/>
+          <line x1="4" y1="12" x2="20" y2="12"/>
+          <circle cx="9" cy="12" r="2.2" fill="white" stroke="currentColor" stroke-width="2.2"/>
+          <line x1="4" y1="18" x2="20" y2="18"/>
+          <circle cx="15" cy="18" r="2.2" fill="white" stroke="currentColor" stroke-width="2.2"/>
+        </svg>
+      </button>
+
       <!-- Existing mode/reset dropdown -->
       <div class="dropdown">
         <button class="dropdown-btn" onclick="toggleDropdown()">⋯</button>
         <div class="dropdown-content" id="dropdownContent">
-          <button onclick="handleMenuItem('cvc')">CVC</button>
-          <button onclick="handleMenuItem('cvvc')">CVVC</button>
-          <button onclick="handleMenuItem('short-a')">Short Vowel "a"</button>
           <button onclick="handleMenuItem('reset')">Reset All</button>
           <button onclick="handleMenuItem('about')">About</button>
           <div style="border-top:1px solid #e0d8cc;margin:4px 0;"></div>
@@ -1008,11 +1022,157 @@
         </div>
       </div>
     </div>
-    <div class="cards-container">
+    <div class="cards-container" style="position:relative;">
       <div id="photoCardContainer" class="photo-card-container"></div>
-      <div class="cards-wrapper" id="cardsWrapper"></div>
+      <div class="cards-wrapper" id="cardsWrapper" style="position:relative;">
+
+        <!-- Embedded card scroll wheel — sits just left of the card stack -->
+        <div id="cardWheel" style="
+          display:none;position:absolute;left:-76px;top:50%;transform:translateY(-50%);
+          background:linear-gradient(135deg,#f5e6d3 0%,#e8d4b8 100%);
+          border-radius:16px;
+          box-shadow:0 6px 24px rgba(0,0,0,0.22);
+          width:68px;z-index:200;overflow:hidden;
+        ">
+          <div style="position:relative;height:176px;overflow:hidden;">
+            <div style="position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);
+              height:44px;background:rgba(139,111,71,0.12);
+              border-top:1.5px solid rgba(139,111,71,0.3);border-bottom:1.5px solid rgba(139,111,71,0.3);
+              pointer-events:none;z-index:2;"></div>
+            <div id="cardWheelList" onscroll="onCardWheelScroll()"
+              style="height:176px;overflow-y:scroll;scroll-snap-type:y mandatory;
+              -webkit-overflow-scrolling:touch;scrollbar-width:none;">
+            </div>
+          </div>
+        </div>
+
+      </div>
     </div>
   </div>
+
+  <!-- ── Help / Word Patterns Modal ── -->
+  <div id="helpModal" style="display:none;position:fixed;inset:0;z-index:30000;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;" onclick="if(event.target===this)closeHelpModal()">
+    <div style="background:white;border-radius:16px;padding:24px;width:min(92vw,480px);max-height:85vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.25);font-family:Arial,sans-serif;">
+      <div style="display:flex;align-items:center;margin-bottom:16px;">
+        <span style="font-weight:700;font-size:1.1rem;color:#5a4a32;flex:1;">📖 Word Patterns</span>
+        <button onclick="closeHelpModal()" style="background:none;border:none;font-size:1.5rem;color:#999;cursor:pointer;line-height:1;">×</button>
+      </div>
+      <p style="font-size:0.82rem;color:#999;margin-bottom:14px;">Tap a pattern to load it.</p>
+
+      <div style="display:flex;flex-direction:column;gap:8px;">
+
+        <button onclick="selectPattern('cvc')" class="pattern-btn">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;">
+            <strong>CVC</strong>
+            <span style="font-size:0.75rem;color:#aaa;">Consonant · Vowel · Consonant</span>
+          </div>
+          <div style="font-size:0.76rem;color:#bbb;margin-top:2px;">cat, dog, run, sit</div>
+        </button>
+
+        <button onclick="selectPattern('cvvc')" class="pattern-btn">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;">
+            <strong>CVVC</strong>
+            <span style="font-size:0.75rem;color:#aaa;">Consonant · Vowel · Vowel · Consonant</span>
+          </div>
+          <div style="font-size:0.76rem;color:#bbb;margin-top:2px;">rain, boat, feet, coat</div>
+        </button>
+
+        <button onclick="selectPattern('cvcc')" class="pattern-btn">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;">
+            <strong>CVCC</strong>
+            <span style="font-size:0.75rem;color:#aaa;">Consonant · Vowel · Consonant · Consonant</span>
+          </div>
+          <div style="font-size:0.76rem;color:#bbb;margin-top:2px;">fast, jump, belt, fist</div>
+        </button>
+
+        <button onclick="selectPattern('ccvc')" class="pattern-btn">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;">
+            <strong>CCVC</strong>
+            <span style="font-size:0.75rem;color:#aaa;">Blend start</span>
+          </div>
+          <div style="font-size:0.76rem;color:#bbb;margin-top:2px;">frog, slip, crab, step</div>
+        </button>
+
+        <button onclick="selectPattern('ccvcc')" class="pattern-btn">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;">
+            <strong>CCVCC</strong>
+            <span style="font-size:0.75rem;color:#aaa;">Blend start + blend end</span>
+          </div>
+          <div style="font-size:0.76rem;color:#bbb;margin-top:2px;">clamp, frost, blend, crest</div>
+        </button>
+
+        <button onclick="selectPattern('cccvc')" class="pattern-btn">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;">
+            <strong>CCCVC</strong>
+            <span style="font-size:0.75rem;color:#aaa;">Three-consonant blend start</span>
+          </div>
+          <div style="font-size:0.76rem;color:#bbb;margin-top:2px;">strip, shrug, scrap, three</div>
+        </button>
+
+        <button onclick="selectPattern('cvce')" class="pattern-btn">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;">
+            <strong>CVCe</strong>
+            <span style="font-size:0.75rem;color:#aaa;">Silent e / Magic e</span>
+          </div>
+          <div style="font-size:0.76rem;color:#bbb;margin-top:2px;">cake, bike, home, tune</div>
+        </button>
+
+        <button onclick="selectPattern('ccvce')" class="pattern-btn">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;">
+            <strong>CCVCe</strong>
+            <span style="font-size:0.75rem;color:#aaa;">Blend + silent e</span>
+          </div>
+          <div style="font-size:0.76rem;color:#bbb;margin-top:2px;">slope, crane, pride, brake</div>
+        </button>
+
+        <button onclick="selectPattern('vcc')" class="pattern-btn">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;">
+            <strong>VCC</strong>
+            <span style="font-size:0.75rem;color:#aaa;">Vowel + two consonants</span>
+          </div>
+          <div style="font-size:0.76rem;color:#bbb;margin-top:2px;">ant, ink, elf, odd</div>
+        </button>
+
+        <button onclick="selectPattern('vc')" class="pattern-btn">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;">
+            <strong>VC</strong>
+            <span style="font-size:0.75rem;color:#aaa;">Vowel + consonant</span>
+          </div>
+          <div style="font-size:0.76rem;color:#bbb;margin-top:2px;">at, in, up, ox, it</div>
+        </button>
+
+        <button onclick="selectPattern('cv')" class="pattern-btn">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;">
+            <strong>CV</strong>
+            <span style="font-size:0.75rem;color:#aaa;">Open syllable</span>
+          </div>
+          <div style="font-size:0.76rem;color:#bbb;margin-top:2px;">no, be, go, we, hi, me</div>
+        </button>
+
+        <div style="border-top:1px solid #e8e0d5;margin:4px 0;"></div>
+
+        <button onclick="selectPattern('short-a')" class="pattern-btn">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;">
+            <strong>Short Vowel "a"</strong>
+            <span style="font-size:0.75rem;color:#aaa;">Letter + Word Ending</span>
+          </div>
+          <div style="font-size:0.76rem;color:#bbb;margin-top:2px;">am, ad, at, an, ack, ant…</div>
+        </button>
+
+      </div>
+
+      <button onclick="closeHelpModal()" style="margin-top:18px;width:100%;background:#8b6f47;border:none;color:white;font-size:0.95rem;font-weight:700;padding:10px;border-radius:10px;cursor:pointer;">Close</button>
+    </div>
+  </div>
+  <style>
+    .pattern-btn {
+      width:100%;text-align:left;background:#f5ece0;border:2px solid transparent;
+      border-radius:10px;padding:10px 14px;cursor:pointer;transition:all 0.15s;
+      font-family:Arial,sans-serif;
+    }
+    .pattern-btn:hover, .pattern-btn:active { background:#ede0cc;border-color:#8b6f47; }
+    .pattern-btn.active-pattern { border-color:#4CAF50;background:#f0faf0; }
+  </style>
 
   <!-- ── Letter Tracing Page ── -->
   <div id="tracingPage" style="display:none;position:fixed;inset:0;z-index:50000;background:#fdf8f0;flex-direction:column;overflow:hidden;">
@@ -1459,19 +1619,23 @@
 
     let photoCardVisible = false;
     let photoMode = 'off'; // 'off' | 'in' | 'out'
+    // Reflect initial Off state on the button
+    document.addEventListener('DOMContentLoaded', () => {
+      const offBtn = document.getElementById('photoBtnOff');
+      if (offBtn) offBtn.classList.add('active');
+    });
     const wordPhotos = {}; // Shared photo store — same data regardless of In/Out mode
 
     function setPhotoMode(mode) {
-      // Tapping the active mode turns it off
-      if (photoMode === mode) mode = 'off';
-
       photoMode = mode;
       photoCardVisible = (mode !== 'off');
 
-      // Update button highlights
-      ['in','out'].forEach(m => {
+      // Update button highlights — only one active at a time
+      ['off','in','out'].forEach(m => {
         const btn = document.getElementById('photoBtn' + m.charAt(0).toUpperCase() + m.slice(1));
-        if (btn) btn.classList.toggle('active', m === mode);
+        if (!btn) return;
+        btn.classList.remove('active');
+        if (m === mode) btn.classList.add('active');
       });
 
       // Handle external photo container visibility
@@ -1866,6 +2030,116 @@
       dropdown.classList.toggle('active');
     }
 
+    function selectPattern(pattern) {
+      // Highlight active button
+      document.querySelectorAll('.pattern-btn').forEach(b => b.classList.remove('active-pattern'));
+      event.currentTarget.classList.add('active-pattern');
+      handleMenuItem(pattern);
+      setTimeout(closeHelpModal, 200);
+    }
+
+    function openHelpModal() {
+      // Mark current active pattern
+      document.querySelectorAll('.pattern-btn').forEach(b => b.classList.remove('active-pattern'));
+      const mode = gameState.mode;
+      document.querySelectorAll('.pattern-btn').forEach(b => {
+        if (b.getAttribute('onclick')?.includes(`'${mode}'`)) b.classList.add('active-pattern');
+      });
+      document.getElementById('helpModal').style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+    function closeHelpModal() {
+      document.getElementById('helpModal').style.display = 'none';
+      document.body.style.overflow = '';
+    }
+
+    // ── Pattern setters ──────────────────────────────────────────────────
+    function setCCVCMode() {
+      gameState.mode = 'ccvc';
+      gameState.cards = [
+        { type: 'consonant', letters: consonants, currentIndex: 0, label: 'Consonant', flippedCards: [], isNarrow: true },
+        { type: 'consonant', letters: consonants, currentIndex: 0, label: 'Consonant', flippedCards: [], isNarrow: true },
+        { type: 'vowel',     letters: vowels,     currentIndex: 0, label: 'Vowel',     flippedCards: [], isNarrow: true },
+        { type: 'consonant', letters: consonants, currentIndex: 0, label: 'Consonant', flippedCards: [] }
+      ];
+      renderCards();
+    }
+
+    function setCCVCCMode() {
+      gameState.mode = 'ccvcc';
+      gameState.cards = [
+        { type: 'consonant', letters: consonants, currentIndex: 0, label: 'Consonant', flippedCards: [], isNarrow: true },
+        { type: 'consonant', letters: consonants, currentIndex: 0, label: 'Consonant', flippedCards: [], isNarrow: true },
+        { type: 'vowel',     letters: vowels,     currentIndex: 0, label: 'Vowel',     flippedCards: [], isNarrow: true },
+        { type: 'consonant', letters: consonants, currentIndex: 0, label: 'Consonant', flippedCards: [], isNarrow: true },
+        { type: 'consonant', letters: consonants, currentIndex: 0, label: 'Consonant', flippedCards: [], isNarrow: true }
+      ];
+      renderCards();
+    }
+
+    function setCCCVCMode() {
+      gameState.mode = 'cccvc';
+      gameState.cards = [
+        { type: 'consonant', letters: consonants, currentIndex: 0, label: 'Consonant', flippedCards: [], isNarrow: true },
+        { type: 'consonant', letters: consonants, currentIndex: 0, label: 'Consonant', flippedCards: [], isNarrow: true },
+        { type: 'consonant', letters: consonants, currentIndex: 0, label: 'Consonant', flippedCards: [], isNarrow: true },
+        { type: 'vowel',     letters: vowels,     currentIndex: 0, label: 'Vowel',     flippedCards: [], isNarrow: true },
+        { type: 'consonant', letters: consonants, currentIndex: 0, label: 'Consonant', flippedCards: [] }
+      ];
+      renderCards();
+    }
+
+    function setCVCeMode() {
+      gameState.mode = 'cvce';
+      gameState.cards = [
+        { type: 'consonant', letters: consonants, currentIndex: 0, label: 'Consonant', flippedCards: [] },
+        { type: 'vowel',     letters: vowels,     currentIndex: 0, label: 'Vowel',     flippedCards: [], isNarrow: true },
+        { type: 'consonant', letters: consonants, currentIndex: 0, label: 'Consonant', flippedCards: [], isNarrow: true },
+        { type: 'silent-e',  letters: ['e'],      currentIndex: 0, label: 'Silent e',  flippedCards: [], isNarrow: true }
+      ];
+      renderCards();
+    }
+
+    function setCCVCeMode() {
+      gameState.mode = 'ccvce';
+      gameState.cards = [
+        { type: 'consonant', letters: consonants, currentIndex: 0, label: 'Consonant', flippedCards: [], isNarrow: true },
+        { type: 'consonant', letters: consonants, currentIndex: 0, label: 'Consonant', flippedCards: [], isNarrow: true },
+        { type: 'vowel',     letters: vowels,     currentIndex: 0, label: 'Vowel',     flippedCards: [], isNarrow: true },
+        { type: 'consonant', letters: consonants, currentIndex: 0, label: 'Consonant', flippedCards: [], isNarrow: true },
+        { type: 'silent-e',  letters: ['e'],      currentIndex: 0, label: 'Silent e',  flippedCards: [], isNarrow: true }
+      ];
+      renderCards();
+    }
+
+    function setVCCMode() {
+      gameState.mode = 'vcc';
+      gameState.cards = [
+        { type: 'vowel',     letters: vowels,     currentIndex: 0, label: 'Vowel',     flippedCards: [] },
+        { type: 'consonant', letters: consonants, currentIndex: 0, label: 'Consonant', flippedCards: [] },
+        { type: 'consonant', letters: consonants, currentIndex: 0, label: 'Consonant', flippedCards: [] }
+      ];
+      renderCards();
+    }
+
+    function setVCMode() {
+      gameState.mode = 'vc';
+      gameState.cards = [
+        { type: 'vowel',     letters: vowels,     currentIndex: 0, label: 'Vowel',     flippedCards: [] },
+        { type: 'consonant', letters: consonants, currentIndex: 0, label: 'Consonant', flippedCards: [] }
+      ];
+      renderCards();
+    }
+
+    function setCVMode() {
+      gameState.mode = 'cv';
+      gameState.cards = [
+        { type: 'consonant', letters: consonants, currentIndex: 0, label: 'Consonant', flippedCards: [] },
+        { type: 'vowel',     letters: vowels,     currentIndex: 0, label: 'Vowel',     flippedCards: [] }
+      ];
+      renderCards();
+    }
+
     function handleMenuItem(action) {
       const dropdown = document.querySelector('.dropdown');
       const content = document.getElementById('dropdownContent');
@@ -1878,6 +2152,33 @@
           break;
         case 'cvvc':
           setCVVCMode();
+          break;
+        case 'cvcc':
+          setCVCCMode();
+          break;
+        case 'ccvc':
+          setCCVCMode();
+          break;
+        case 'ccvcc':
+          setCCVCCMode();
+          break;
+        case 'cccvc':
+          setCCCVCMode();
+          break;
+        case 'cvce':
+          setCVCeMode();
+          break;
+        case 'ccvce':
+          setCCVCeMode();
+          break;
+        case 'vcc':
+          setVCCMode();
+          break;
+        case 'vc':
+          setVCMode();
+          break;
+        case 'cv':
+          setCVMode();
           break;
         case 'short-a':
           setShortVowelA();
@@ -1915,6 +2216,17 @@
       renderCards();
     }
 
+    function setCVCCMode() {
+      gameState.mode = 'cvcc';
+      gameState.cards = [
+        { type: 'consonant', letters: consonants, currentIndex: 0, label: 'Consonant', flippedCards: [] },
+        { type: 'vowel',     letters: vowels,     currentIndex: 0, label: 'Vowel',     flippedCards: [], isNarrow: true },
+        { type: 'consonant', letters: consonants, currentIndex: 0, label: 'Consonant', flippedCards: [], isNarrow: true },
+        { type: 'consonant', letters: consonants, currentIndex: 0, label: 'Consonant', flippedCards: [] }
+      ];
+      renderCards();
+    }
+
     function setShortVowelA() {
       gameState.mode = 'short-a';
       gameState.cards = [
@@ -1923,6 +2235,93 @@
       ];
       renderCards();
     }
+
+    // ── Embedded Card Scroll Wheel ────────────────────────────────────────
+    const CARD_WHEEL_H = 44;
+    let cardWheelCardIndex = null;
+    let cardWheelSnapTimeout = null;
+
+    function openCardWheel(cardIndex) {
+      cardWheelCardIndex = cardIndex;
+      const card  = gameState.cards[cardIndex];
+      const wheel = document.getElementById('cardWheel');
+      const list  = document.getElementById('cardWheelList');
+      list.innerHTML = '';
+
+      // Top padding for centering
+      const pad = document.createElement('div');
+      pad.style.height = (CARD_WHEEL_H * 2) + 'px';
+      list.appendChild(pad.cloneNode(true));
+
+      card.letters.forEach((letter, i) => {
+        const item = document.createElement('div');
+        item.style.cssText = `height:${CARD_WHEEL_H}px;display:flex;align-items:center;
+          justify-content:center;font-family:'Comic Sans MS',cursive;font-weight:700;
+          color:${i === card.currentIndex ? '#8b6f47' : '#c8b89a'};
+          font-size:${i === card.currentIndex ? '1.5rem' : '1.15rem'};
+          scroll-snap-align:center;cursor:pointer;transition:color 0.1s,font-size 0.1s;`;
+        item.textContent = applyCaseTransform(letter, cardIndex);
+        item.dataset.index = i;
+        item.addEventListener('click', () => jumpCardWheelTo(i));
+        list.appendChild(item);
+      });
+
+      list.appendChild(pad.cloneNode(true));
+
+      wheel.style.display = 'block';
+      requestAnimationFrame(() => {
+        list.scrollTop = card.currentIndex * CARD_WHEEL_H;
+      });
+    }
+
+    function closeCardWheel() {
+      document.getElementById('cardWheel').style.display = 'none';
+      cardWheelCardIndex = null;
+    }
+
+    function jumpCardWheelTo(idx) {
+      const list = document.getElementById('cardWheelList');
+      list.scrollTo({ top: idx * CARD_WHEEL_H, behavior: 'smooth' });
+      applyCardWheelIndex(idx);
+    }
+
+    function applyCardWheelIndex(idx) {
+      if (cardWheelCardIndex === null) return;
+      const card = gameState.cards[cardWheelCardIndex];
+      if (idx < 0 || idx >= card.letters.length) return;
+      card.currentIndex = idx;
+      card.flippedCards = [];
+      // Highlight in wheel without full re-render
+      const list = document.getElementById('cardWheelList');
+      list.querySelectorAll('[data-index]').forEach(item => {
+        const i = parseInt(item.dataset.index);
+        item.style.color    = i === idx ? '#8b6f47' : '#c8b89a';
+        item.style.fontSize = i === idx ? '1.5rem'  : '1.15rem';
+      });
+      const savedIdx = cardWheelCardIndex;
+      renderCards();
+      // Re-open wheel on the same card after renderCards rebuilds DOM
+      requestAnimationFrame(() => openCardWheel(savedIdx));
+    }
+
+    function onCardWheelScroll() {
+      const list = document.getElementById('cardWheelList');
+      const idx  = Math.round(list.scrollTop / CARD_WHEEL_H);
+      clearTimeout(cardWheelSnapTimeout);
+      cardWheelSnapTimeout = setTimeout(() => {
+        list.scrollTo({ top: idx * CARD_WHEEL_H, behavior: 'smooth' });
+        applyCardWheelIndex(idx);
+      }, 150);
+    }
+
+    // Close when tapping outside the wheel or labels
+    document.addEventListener('click', (e) => {
+      const wheel = document.getElementById('cardWheel');
+      if (wheel && wheel.style.display !== 'none' &&
+          !wheel.contains(e.target) && !e.target.closest('.card-label')) {
+        closeCardWheel();
+      }
+    });
 
     function resetAllCards() {
       gameState.cards.forEach(card => {
@@ -1934,6 +2333,8 @@
 
     function renderCards() {
       const wrapper = document.getElementById('cardsWrapper');
+      // Save the wheel element before wiping innerHTML
+      const savedWheel = document.getElementById('cardWheel');
       wrapper.innerHTML = '';
 
       gameState.cards.forEach((cardData, cardIndex) => {
@@ -2016,8 +2417,8 @@
         faceFront.className = 'face face-front';
         faceFront.textContent = applyCaseTransform(letters[currentIndex], cardIndex);
 
-        // ── + Photo button (top-right of the letter card) ──
-        if (photoCardVisible) {
+        // ── + Photo button (top-right of letter card) — only in 'in' mode ──
+        if (photoMode === 'in') {
           const currentWord = gameState.cards.map((c, i) =>
             c.letters[c.currentIndex].toLowerCase()
           ).join('');
@@ -2086,10 +2487,14 @@
         notebook.appendChild(faceFront);
         notebook.appendChild(faceBack);
         
-        // Label
-        const label = document.createElement('div');
+        // Label — tappable button to open embedded scroll wheel
+        const label = document.createElement('button');
         label.className = 'card-label';
         label.textContent = cardData.label;
+        label.style.cssText = 'background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:6px;-webkit-tap-highlight-color:transparent;';
+        label.addEventListener('click', (e) => { e.stopPropagation(); openCardWheel(cardIndex); });
+        label.addEventListener('touchstart', (e) => { e.stopPropagation(); }, { passive: true });
+        label.addEventListener('touchend', (e) => { e.stopPropagation(); e.preventDefault(); openCardWheel(cardIndex); });
         
         scene.appendChild(flippedStack);
         scene.appendChild(binding);
@@ -2178,6 +2583,9 @@
         photoContainer.classList.remove('visible');
         photoContainer.innerHTML = '';
       }
+
+      // Restore wheel into wrapper (innerHTML wipe removed it)
+      if (savedWheel) wrapper.appendChild(savedWheel);
     }
 
     function handleSwipe(cardIndex, notebook, startY, endY, startTime, endTime) {
