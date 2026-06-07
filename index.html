@@ -11,6 +11,8 @@
 <style>
   /* Rotate portrait devices into landscape */
   /* Orientation overlay shown via JS only */
+
+<style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
   html, body {
@@ -40,14 +42,17 @@
     }
     .top-bar {
       flex-direction: column;
-      justify-content: center;
+      justify-content: flex-start;
       align-items: center;
-      padding: 12px 8px;
-      gap: 12px;
+      padding: 10px 8px;
+      gap: 8px;
       width: 64px;
       flex-shrink: 0;
       border-right: 1px solid rgba(139,111,71,0.15);
+      overflow: visible;
     }
+    .top-bar .settings-btn,
+    .top-bar .dropdown-btn { width: 40px; height: 40px; }
     .cards-container {
       flex: 1;
       width: 0; /* let flex handle it */
@@ -845,7 +850,7 @@
     position: fixed;
     inset: 0;
     background: rgba(0,0,0,0.45);
-    z-index: 100000;
+    z-index: 29999;
     display: none;
     opacity: 0;
     transition: opacity 0.3s ease-out;
@@ -863,7 +868,7 @@
     max-width: 82vw;
     height: 100%;
     background: white;
-    z-index: 100001;
+    z-index: 30000;
     transition: left 0.3s ease-out;
     box-shadow: 4px 0 20px rgba(0,0,0,0.25);
     display: flex;
@@ -1130,7 +1135,7 @@
   </div>
 
   <!-- ── Help / Word Patterns Modal ── -->
-  <div id="helpModal" style="display:none;position:fixed;inset:0;z-index:100002;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;" onclick="if(event.target===this)closeHelpModal()">
+  <div id="helpModal" style="display:none;position:fixed;inset:0;z-index:30000;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;" onclick="if(event.target===this)closeHelpModal()">
     <div style="background:white;border-radius:16px;padding:24px;width:min(92vw,480px);max-height:85vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.25);font-family:Arial,sans-serif;">
       <div style="display:flex;align-items:center;margin-bottom:16px;">
         <span style="font-weight:700;font-size:1.1rem;color:#5a4a32;flex:1;">📖 Word Patterns</span>
@@ -1254,7 +1259,7 @@
   </style>
 
   <!-- ── Letter Tracing Page ── -->
-  <div id="tracingPage" style="display:none;position:fixed;inset:0;z-index:100003;background:#fdf8f0;flex-direction:column;overflow:hidden;">
+  <div id="tracingPage" style="display:none;position:fixed;inset:0;z-index:50000;background:#fdf8f0;flex-direction:column;overflow:hidden;">
 
     <!-- Single combined header row: back | centred tabs | controls -->
     <div style="display:flex;align-items:flex-end;padding:8px 12px 0;background:#8b6f47;flex-shrink:0;">
@@ -1457,10 +1462,11 @@
         </div><!-- end inner flex row -->
       </div><!-- end tracingToolToggle -->
 
-  </div>
+    </div><!-- end tracingNotebook -->
+  </div><!-- end tracingPage -->
 
   <!-- ── Manual Word Panel ── -->
-  <div id="manualWordPanel" style="display:none;position:fixed;inset:0;z-index:100004;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;">
+  <div id="manualWordPanel" style="display:none;position:fixed;inset:0;z-index:60000;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;">
     <div style="background:white;border-radius:16px;padding:20px;width:min(90vw,360px);max-height:85vh;display:flex;flex-direction:column;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,0.25);overflow-y:auto;">
       <div style="display:flex;align-items:center;">
         <span style="font-weight:700;font-size:1rem;color:#5a4a32;flex:1;">Manual Word List</span>
@@ -1499,7 +1505,7 @@
   </div>
 
   <!-- ── Scroll Wheel Picker ── -->
-  <div id="scrollWheelOverlay" style="display:none;position:fixed;inset:0;z-index:100004;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;">
+  <div id="scrollWheelOverlay" style="display:none;position:fixed;inset:0;z-index:60000;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;">
     <div style="background:white;border-radius:16px;padding:16px 20px;width:min(80vw,280px);box-shadow:0 8px 32px rgba(0,0,0,0.25);display:flex;flex-direction:column;align-items:center;gap:12px;">
       <span style="font-weight:700;font-size:0.95rem;color:#5a4a32;">Select Word</span>
 
@@ -1687,6 +1693,7 @@
       if (offBtn) offBtn.classList.add('active');
     });
     const wordPhotos = {}; // Shared photo store — same data regardless of In/Out mode
+    const wordPhotoCard = {}; // word -> cardIndex the photo was imported on (for 'in' mode back-display)
 
     function setPhotoMode(mode) {
       photoMode = mode;
@@ -1713,11 +1720,13 @@
     }
 
     // ── Shared photo save with replace prompt ──────────────────────────────
-    function savePhotoForWord(word, dataUrl) {
+    function savePhotoForWord(word, dataUrl, cardIndex) {
       if (wordPhotos[word]) {
         if (!confirm(`A photo already exists for "${word}".\nReplace it?`)) return;
       }
       wordPhotos[word] = dataUrl;
+      // Remember which card column the photo was imported on (for 'in' back-display)
+      if (typeof cardIndex === 'number') wordPhotoCard[word] = cardIndex;
       renderCards();
     }
 
@@ -1733,6 +1742,8 @@
 
     // Module-level: track which word the mouse is currently hovering over
     let hoveredPhotoWord = null;
+    // Track which card column the hovered photo target belongs to (for paste/drop)
+    let hoveredPhotoCard = null;
     // Track which card index the mouse is hovering over (for keyboard jump)
     let hoveredCardIndex = null;
     // Track the last card that was flipped (for green dot indicator)
@@ -1804,12 +1815,13 @@
 
     // Attach drag-and-drop + paste-on-hover to any element.
     // getWord() is called at event time to determine target word.
-    function addPhotoDropAndPaste(el, getWord) {
+    function addPhotoDropAndPaste(el, getWord, getCardIndex) {
       el.classList.add('photo-drop-target');
+      const cardIdx = () => (getCardIndex ? getCardIndex() : undefined);
 
       // Track hovered word at the module level so it survives re-renders
-      el.addEventListener('mouseenter', () => { hoveredPhotoWord = getWord(); });
-      el.addEventListener('mouseleave', () => { hoveredPhotoWord = null; });
+      el.addEventListener('mouseenter', () => { hoveredPhotoWord = getWord(); hoveredPhotoCard = cardIdx(); });
+      el.addEventListener('mouseleave', () => { hoveredPhotoWord = null; hoveredPhotoCard = null; });
 
       // ── Drag and drop ──
       el.addEventListener('dragover', (e) => {
@@ -1818,6 +1830,7 @@
         if ([...e.dataTransfer.types].includes('Files') || [...e.dataTransfer.types].includes('text/html')) {
           el.classList.add('drag-over');
           hoveredPhotoWord = getWord(); // refresh on dragover too
+          hoveredPhotoCard = cardIdx();
         }
       });
       el.addEventListener('dragleave', (e) => {
@@ -1830,13 +1843,14 @@
         e.stopPropagation();
         el.classList.remove('drag-over');
         const word = getWord();
+        const ci = cardIdx();
 
         // Try file drop first
         const file = e.dataTransfer.files[0];
         if (file) {
           try {
             const dataUrl = await readFileAsDataUrl(file);
-            savePhotoForWord(word, dataUrl);
+            savePhotoForWord(word, dataUrl, ci);
           } catch { alert('Please drop an image file.'); }
           return;
         }
@@ -1851,7 +1865,7 @@
               const blob = await resp.blob();
               if (!blob.type.startsWith('image/')) { alert('Not an image.'); return; }
               const dataUrl = await readFileAsDataUrl(blob);
-              savePhotoForWord(word, dataUrl);
+              savePhotoForWord(word, dataUrl, ci);
             } catch { alert('Could not load that image. Try saving it locally first.'); }
             return;
           }
@@ -1873,7 +1887,7 @@
             e.preventDefault();
             try {
               const dataUrl = await readFileAsDataUrl(item.getAsFile());
-              savePhotoForWord(hoveredPhotoWord, dataUrl);
+              savePhotoForWord(hoveredPhotoWord, dataUrl, hoveredPhotoCard);
             } catch { alert('Error reading pasted image.'); }
             return;
           }
@@ -1925,6 +1939,7 @@
           e.stopPropagation();
           if (confirm(`Delete photo for "${currentWord}"?`)) {
             delete wordPhotos[currentWord];
+            delete wordPhotoCard[currentWord];
             renderCards();
           }
         };
@@ -2478,7 +2493,7 @@
         if (cardData.isWide) flippedStack.classList.add('wide');
         if (cardData.isNarrow) flippedStack.classList.add('narrow');
         
-        // Add all previously flipped cards to the stack
+        // Add all previously flipped cards to the stack (blank — photo handled on top card below)
         if (cardData.flippedCards && cardData.flippedCards.length > 0) {
           cardData.flippedCards.forEach((flip, index) => {
             const flippedCard = document.createElement('div');
@@ -2486,33 +2501,35 @@
             if (cardData.isWide) flippedCard.classList.add('wide');
             if (cardData.isNarrow) flippedCard.classList.add('narrow');
             flippedCard.style.zIndex = 100 + index;
-
-            // In 'in' mode: show photo on the back (top face) of the top-most flipped card
-            const isTopCard = index === cardData.flippedCards.length - 1;
-            if (photoMode === 'in' && isTopCard && photoCardVisible) {
-              const flipWord = typeof flip === 'object' ? flip.word : null;
-              const photo = flipWord ? wordPhotos[flipWord] : null;
-
-              if (photo) {
-                // Display-only: just show the image, no interaction
-                const img = document.createElement('img');
-                img.src = photo;
-                img.className = 'card-photo';
-                img.style.borderRadius = '4px 4px 8px 8px';
-                img.style.pointerEvents = 'none';
-                flippedCard.appendChild(img);
-              }
-              // No photo = blank card, no cue, no interaction
-            }
-
             flippedStack.appendChild(flippedCard);
           });
         }
 
-        // Always show one blank card on top of the stack (above the binding)
+        // Always show one card on top of the stack (above the binding).
+        // In 'in' mode, if the current assembled word has a photo AND it was
+        // imported on THIS card column, display it here (the "back of the card").
         const alwaysTopCard = document.createElement('div');
         alwaysTopCard.className = 'flipped-card' + (cardData.isWide ? ' wide' : cardData.isNarrow ? ' narrow' : '');
         alwaysTopCard.style.zIndex = 200;
+
+        if (photoMode === 'in' && photoCardVisible) {
+          const assembledWord = gameState.cards.map(c =>
+            c.letters[c.currentIndex].toLowerCase()
+          ).join('');
+          const photo = wordPhotos[assembledWord];
+          // Which column to show it on: the card it was imported on, else first card
+          const photoCardIdx = (typeof wordPhotoCard[assembledWord] === 'number')
+            ? wordPhotoCard[assembledWord] : 0;
+          if (photo && photoCardIdx === cardIndex) {
+            const img = document.createElement('img');
+            img.src = photo;
+            img.className = 'card-photo';
+            img.style.borderRadius = '4px 4px 8px 8px';
+            img.style.pointerEvents = 'none';
+            alwaysTopCard.appendChild(img);
+          }
+        }
+
         flippedStack.appendChild(alwaysTopCard);
         
         const letters = cardData.letters;
@@ -2556,8 +2573,8 @@
           photoBtn.title = hasPhoto ? 'Photo attached — click to replace' : 'Attach photo (click, drag, or Ctrl+V)';
 
           // Hovering the button sets the paste target word
-          photoBtn.addEventListener('mouseenter', () => { hoveredPhotoWord = currentWord; });
-          photoBtn.addEventListener('mouseleave', () => { hoveredPhotoWord = null; });
+          photoBtn.addEventListener('mouseenter', () => { hoveredPhotoWord = currentWord; hoveredPhotoCard = cardIndex; });
+          photoBtn.addEventListener('mouseleave', () => { hoveredPhotoWord = null; hoveredPhotoCard = null; });
 
           // Click → file picker (with replace prompt if needed)
           photoBtn.addEventListener('click', async (e) => {
@@ -2571,7 +2588,7 @@
               if (file) {
                 try {
                   const dataUrl = await readFileAsDataUrl(file);
-                  savePhotoForWord(currentWord, dataUrl);
+                  savePhotoForWord(currentWord, dataUrl, cardIndex);
                 } catch { alert('Error reading image.'); }
               }
             };
@@ -2579,7 +2596,7 @@
           });
 
           // Drag-and-drop onto the button itself
-          addPhotoDropAndPaste(photoBtn, () => currentWord);
+          addPhotoDropAndPaste(photoBtn, () => currentWord, () => cardIndex);
 
           // Prevent button touch events from propagating to the card flip handler
           photoBtn.addEventListener('touchstart', (e) => e.stopPropagation());
@@ -2595,7 +2612,7 @@
               if (file) {
                 try {
                   const dataUrl = await readFileAsDataUrl(file);
-                  savePhotoForWord(currentWord, dataUrl);
+                  savePhotoForWord(currentWord, dataUrl, cardIndex);
                 } catch { alert('Error reading image.'); }
               }
             };
@@ -4004,6 +4021,11 @@
       return confirmationMessage;
     });
 
+    // ── Pre-built Word Lists ──────────────────────────────────────────────
+    const PRE_BUILT_LISTS = {
+      cvc: ['bad', 'bag', 'ban', 'bar', 'bat', 'cab', 'can', 'cap', 'cat', 'dam', 'fan', 'fat', 'gap', 'gas', 'had', 'ham', 'has', 'hat', 'lag', 'man', 'map', 'mat', 'pad', 'pan', 'pat', 'rag', 'ran', 'rat', 'sad', 'sat', 'tag', 'tan', 'tap', 'van', 'wag', 'bed', 'beg', 'bet', 'den', 'dew', 'fed', 'get', 'hen', 'jet', 'leg', 'let', 'met', 'net', 'peg', 'pet', 'red', 'set', 'ten', 'web', 'wet', 'yes', 'yet', 'bid', 'big', 'bin', 'bit', 'did', 'dig', 'dim', 'dip', 'fig', 'fin', 'fit', 'fix', 'gig', 'hid', 'him', 'hip', 'his', 'hit', 'kid', 'kit', 'lid', 'lip', 'lit', 'pig', 'pin', 'pit', 'rig', 'rim', 'rip', 'sit', 'six', 'tip', 'wig', 'win', 'zip', 'bog', 'box', 'cob', 'cod', 'cog', 'cop', 'cot', 'dog', 'dot', 'fog', 'fop', 'got', 'hog', 'hop', 'hot', 'job', 'jog', 'log', 'lot', 'mop', 'nod', 'not', 'pod', 'pop', 'pot', 'rob', 'rod', 'rot', 'sob', 'sod', 'top', 'tot', 'wot', 'bud', 'bug', 'bum', 'bun', 'bus', 'but', 'cub', 'cup', 'cut', 'dug', 'dun', 'fun', 'gun', 'gum', 'gut', 'hug', 'hut', 'jug', 'mud', 'mug', 'nun', 'pug', 'pun', 'pus', 'put', 'rub', 'rug', 'run', 'rut', 'sub', 'sum', 'sun', 'tub']
+    };
+
     // ── Manage Units ──────────────────────────────────────────────────────
     let phoneticUnits = [];
     try { phoneticUnits = JSON.parse(localStorage.getItem('phoneticUnits') || '[]'); } catch(e) {}
@@ -4025,7 +4047,7 @@
 
     function deleteGalleryWord(word) {
       delete wordPhotos[word];
-      // Rebuild gallery in place
+      delete wordPhotoCard[word];
       const container = document.getElementById('galleryWordsContainer');
       buildGalleryContent(container);
       if (galleryDeleteMode) container.classList.add('delete-mode');
@@ -4073,7 +4095,6 @@
     const importPhotos = {}; // word → dataUrl, temp store while modal is open
 
     function openImportModal() {
-      importPhotos;
       Object.keys(importPhotos).forEach(k => delete importPhotos[k]);
       document.getElementById('importWordsInput').value = '';
       document.getElementById('importWordRows').innerHTML = '';
@@ -4089,7 +4110,6 @@
       const words = raw.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
       const container = document.getElementById('importWordRows');
 
-      // Keep existing photo data for words still in the list
       const keepWords = new Set(words);
       Object.keys(importPhotos).forEach(k => { if (!keepWords.has(k)) delete importPhotos[k]; });
 
@@ -4098,13 +4118,11 @@
         const row = document.createElement('div');
         row.style.cssText = 'display:flex;align-items:center;gap:10px;background:#fdf8f2;border:1.5px solid #e8ddd0;border-radius:10px;padding:8px 12px;';
 
-        // Word label
         const label = document.createElement('div');
         label.style.cssText = "flex:1;font-weight:700;font-size:1rem;color:#5a4a32;font-family:'Comic Sans MS',cursive;";
         label.textContent = word;
         row.appendChild(label);
 
-        // Photo preview / attach button
         const photoArea = document.createElement('div');
         photoArea.style.cssText = 'flex-shrink:0;display:flex;align-items:center;gap:6px;';
 
@@ -4126,7 +4144,7 @@
             if (!file) return;
             const dataUrl = await readFileAsDataUrl(file);
             importPhotos[word] = dataUrl;
-            buildImportRows(); // Rebuild to show thumb
+            buildImportRows();
           };
           inp.click();
         };
@@ -4141,18 +4159,14 @@
       const words = raw.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
       if (!words.length) { closeImportModal(); return; }
 
-      // Save photos for words that have them
       words.forEach(word => {
         if (importPhotos[word]) savePhotoForWord(word, importPhotos[word]);
       });
 
-      // Enable photo mode if photos were added and it's currently off
       const hasAnyPhoto = words.some(w => importPhotos[w]);
       if (hasAnyPhoto && photoMode === 'off') setPhotoMode('out');
 
       closeImportModal();
-
-      // Open the photo gallery so user can see the result
       openPhotoGallery();
     }
 
@@ -4185,14 +4199,27 @@
       `).join('');
     }
 
+    function loadPreBuiltList(listName) {
+      const list = PRE_BUILT_LISTS[listName];
+      if (!list) return;
+      // Format as comma-separated words
+      const formatted = list.join(', ');
+      document.getElementById('unitPatternInput').value = formatted;
+      updatePatternPreview();
+    }
+
     function openUnitModal(editIdx) {
       editIdx = (editIdx === undefined) ? -1 : editIdx;
       document.getElementById('unitEditIndex').value = editIdx;
+      // Reset photo store
+      Object.keys(unitPhotos).forEach(k => delete unitPhotos[k]);
       if (editIdx >= 0 && phoneticUnits[editIdx]) {
         const unit = phoneticUnits[editIdx];
         document.getElementById('unitModalTitle').textContent = 'Edit Unit';
         document.getElementById('unitNameInput').value = unit.name;
         document.getElementById('unitPatternInput').value = unit.patterns;
+        // Restore saved photos
+        if (unit.photos) Object.keys(unit.photos).forEach(k => { unitPhotos[k] = unit.photos[k]; });
       } else {
         document.getElementById('unitModalTitle').textContent = 'New Unit';
         document.getElementById('unitNameInput').value = '';
@@ -4222,7 +4249,11 @@
       const editIdx  = parseInt(document.getElementById('unitEditIndex').value);
       if (!name)     { alert('Please enter a unit name.'); return; }
       if (!patterns) { alert('Please enter at least one word pattern.'); return; }
-      const unit = { name, patterns };
+      // Only keep photos for words still in the pattern list
+      const words = patterns.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+      const photos = {};
+      words.forEach(w => { if (unitPhotos[w]) photos[w] = unitPhotos[w]; });
+      const unit = { name, patterns, photos };
       if (editIdx >= 0) { phoneticUnits[editIdx] = unit; }
       else { phoneticUnits.push(unit); }
       saveUnitsToStorage();
@@ -4233,36 +4264,146 @@
     function loadUnit(idx) {
       const unit = phoneticUnits[idx];
       if (!unit) return;
-      const combos = unit.patterns.split(',').map(s => s.trim()).filter(Boolean);
-      alert('Loaded: ' + unit.name + '\n\nPatterns: ' + combos.join(', ') + '\n\n(' + combos.length + ' combinations)');
+
+      // Parse words: keep only letters, lowercase, drop wildcards/blanks
+      const words = unit.patterns.split(',')
+        .map(s => s.trim().toLowerCase().replace(/[^a-z]/g, ''))
+        .filter(Boolean);
+
+      if (!words.length) {
+        alert('This unit has no usable words to load.');
+        closeManagePanel();
+        return;
+      }
+
+      // Apply any saved photos to the shared photo store
+      let photoCount = 0;
+      if (unit.photos) {
+        Object.keys(unit.photos).forEach(word => {
+          savePhotoForWord(word, unit.photos[word]);
+          photoCount++;
+        });
+      }
+
+      // Build constrained cards from the word set
+      buildUnitCards(words);
+
+      // Turn on photo mode if photos exist
+      if (photoCount > 0 && photoMode === 'off') setPhotoMode('out');
+
       closeManagePanel();
     }
+
+    const VOWEL_SET = new Set(['a','e','i','o','u']);
+
+    function buildUnitCards(words) {
+      // Determine number of card positions = longest word length
+      const maxLen = Math.max(...words.map(w => w.length));
+
+      const cards = [];
+      for (let pos = 0; pos < maxLen; pos++) {
+        // Collect distinct letters that appear at this position
+        const seen = [];
+        words.forEach(w => {
+          const ch = w[pos];
+          if (ch && !seen.includes(ch)) seen.push(ch);
+        });
+        seen.sort();
+
+        // Classify the card: vowel if every letter at this position is a vowel
+        const allVowels = seen.every(c => VOWEL_SET.has(c));
+        const type  = allVowels ? 'vowel' : 'consonant';
+        const label = allVowels ? 'Vowel' : 'Consonant';
+
+        cards.push({
+          type,
+          letters: seen,
+          currentIndex: 0,
+          label,
+          flippedCards: [],
+          isNarrow: maxLen >= 4
+        });
+      }
+
+      gameState.mode  = 'unit';
+      gameState.cards = cards;
+      renderCards();
+    }
+
+    // Photo store for the unit modal — word → dataUrl, while modal is open
+    const unitPhotos = {};
 
     function updatePatternPreview() {
       const raw    = document.getElementById('unitPatternInput').value;
       const combos = raw.split(',').map(s => s.trim()).filter(Boolean);
       const preview = document.getElementById('unitPatternPreview');
-      if (!combos.length) { preview.textContent = ''; return; }
-      preview.innerHTML = combos.map(c =>
-        '<span style="display:inline-block;background:#f5ece0;border:1px solid #c8b89a;' +
-        'border-radius:6px;padding:2px 8px;margin:2px;font-family:\'Comic Sans MS\',cursive;' +
-        'font-size:0.88rem;color:#5a4a32;">' + escapeHtml(c) + '</span>'
-      ).join('');
+      if (!preview) return;
+
+      // Drop photos for words no longer in the list
+      const keep = new Set(combos.map(c => c.toLowerCase()));
+      Object.keys(unitPhotos).forEach(k => { if (!keep.has(k)) delete unitPhotos[k]; });
+
+      if (!combos.length) { preview.innerHTML = ''; return; }
+
+      preview.innerHTML = '';
+      combos.forEach(c => {
+        const word = c.toLowerCase();
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;gap:10px;background:#fdf8f2;border:1.5px solid #e8ddd0;border-radius:10px;padding:7px 10px;margin-bottom:6px;';
+
+        const label = document.createElement('div');
+        label.style.cssText = "flex:1;font-weight:700;font-size:0.95rem;color:#5a4a32;font-family:'Comic Sans MS',cursive;";
+        label.textContent = c;
+        row.appendChild(label);
+
+        const photoArea = document.createElement('div');
+        photoArea.style.cssText = 'flex-shrink:0;display:flex;align-items:center;gap:6px;';
+
+        if (unitPhotos[word]) {
+          const thumb = document.createElement('img');
+          thumb.src = unitPhotos[word];
+          thumb.style.cssText = 'width:36px;height:36px;object-fit:cover;border-radius:6px;border:1.5px solid #c8b89a;';
+          photoArea.appendChild(thumb);
+
+          const rm = document.createElement('button');
+          rm.textContent = '✕';
+          rm.title = 'Remove photo';
+          rm.style.cssText = 'background:#f0d0d0;border:none;color:#c0392b;border-radius:6px;width:26px;height:30px;font-size:0.8rem;font-weight:700;cursor:pointer;';
+          rm.onclick = () => { delete unitPhotos[word]; updatePatternPreview(); };
+          photoArea.appendChild(rm);
+        } else {
+          const attachBtn = document.createElement('button');
+          attachBtn.textContent = '📷 Photo';
+          attachBtn.style.cssText = 'background:#8b6f47;border:none;color:white;border-radius:8px;padding:6px 10px;font-size:0.74rem;font-weight:700;cursor:pointer;white-space:nowrap;';
+          attachBtn.onclick = () => {
+            const inp = document.createElement('input');
+            inp.type = 'file'; inp.accept = 'image/*';
+            inp.onchange = async (e) => {
+              const file = e.target.files[0];
+              if (!file) return;
+              unitPhotos[word] = await readFileAsDataUrl(file);
+              updatePatternPreview();
+            };
+            inp.click();
+          };
+          photoArea.appendChild(attachBtn);
+        }
+
+        row.appendChild(photoArea);
+        preview.appendChild(row);
+      });
     }
 
     function escapeHtml(str) {
       return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
-    document.getElementById('unitPatternInput') &&
-      document.getElementById('unitPatternInput').addEventListener('input', updatePatternPreview);
-
   </script>
 
   <!-- Portrait orientation overlay -->
   <div id="orientationOverlay" style="
     display: none;
-    position: fixed; inset: 0; z-index: 9999;
+    position: fixed; inset: 0; z-index: 99999;
     background: #4a3728;
     flex-direction: column;
     align-items: center;
@@ -4308,6 +4449,7 @@
     })();
   </script>
 
+
   <!-- ── Manage Units Side Panel ── -->
   <div id="managePanelOverlay" onclick="closeManagePanel()" style="
     display:none;position:fixed;top:0;right:0;bottom:0;left:0;
@@ -4324,13 +4466,11 @@
     box-shadow:4px 0 24px rgba(0,0,0,0.22);
     font-family:Arial,sans-serif;
   ">
-    <!-- Header -->
     <div style="background:#8b6f47;color:white;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
       <span style="font-weight:700;font-size:1rem;">📚 Quick Load Units</span>
       <button onclick="closeManagePanel()" style="background:none;border:none;color:white;font-size:1.4rem;cursor:pointer;line-height:1;padding:2px 6px;">×</button>
     </div>
 
-    <!-- Add new unit button -->
     <div style="padding:10px 12px;border-bottom:1px solid #e8ddd0;flex-shrink:0;">
       <button onclick="openUnitModal()" style="
         width:100%;background:#8b6f47;border:none;color:white;
@@ -4338,7 +4478,6 @@
       ">+ New Unit</button>
     </div>
 
-    <!-- Unit list -->
     <div id="managePanelList" style="flex:1;overflow-y:auto;padding:8px 0;"></div>
   </div>
 
@@ -4354,33 +4493,33 @@
         <button onclick="closeUnitModal()" style="background:none;border:none;font-size:1.5rem;color:#999;cursor:pointer;line-height:1;">×</button>
       </div>
 
-      <!-- Unit name -->
       <label style="font-size:0.8rem;font-weight:700;color:#8b6f47;display:block;margin-bottom:4px;">Unit Name</label>
       <input id="unitNameInput" type="text" placeholder="e.g. Unit 1 — Short Vowels"
         autocapitalize="words" autocorrect="off"
         style="width:100%;padding:9px 12px;border:2px solid #c8b89a;border-radius:8px;font-size:1rem;
                color:#5a4a32;margin-bottom:16px;outline:none;box-sizing:border-box;">
 
-      <!-- Pattern field -->
       <label style="font-size:0.8rem;font-weight:700;color:#8b6f47;display:block;margin-bottom:4px;">
         Word Patterns
-        <span style="font-weight:400;color:#aaa;font-size:0.75rem;"> — comma separated, use _ for any letter</span>
+        <span style="font-weight:400;color:#aaa;font-size:0.75rem;"> — comma separated, attach photos below</span>
       </label>
-      <div style="background:#fdf8f2;border:1px solid #e8ddd0;border-radius:8px;padding:8px 10px;margin-bottom:6px;font-size:0.78rem;color:#8b6f47;">
-        Examples: <code>_uck, _ug, _ow</code> &nbsp;|&nbsp; <code>c_t, h_t, b_t</code> &nbsp;|&nbsp; <code>_at, _an, _ad</code>
+      <div style="display:flex;gap:8px;margin-bottom:8px;">
+        <div style="background:#fdf8f2;border:1px solid #e8ddd0;border-radius:8px;padding:8px 10px;flex:1;font-size:0.78rem;color:#8b6f47;">
+          Examples: <code>_uck, _ug, _ow</code> &nbsp;|&nbsp; <code>c_t, h_t, b_t</code> &nbsp;|&nbsp; <code>_at, _an, _ad</code>
+        </div>
+        <button onclick="loadPreBuiltList('cvc')" style="background:#e8d4b8;border:2px solid #8b6f47;color:#8b6f47;font-size:0.75rem;font-weight:700;padding:8px 12px;border-radius:8px;cursor:pointer;white-space:nowrap;transition:all 0.2s;">📚 CVC List</button>
       </div>
       <textarea id="unitPatternInput"
         placeholder="_uck, _ug, _ow, _in, _it"
         autocapitalize="none" autocorrect="off" autocomplete="off" spellcheck="false"
+        oninput="updatePatternPreview()"
         style="width:100%;padding:9px 12px;border:2px solid #c8b89a;border-radius:8px;
                font-size:1rem;color:#5a4a32;min-height:90px;resize:vertical;
                font-family:'Comic Sans MS',cursive;outline:none;box-sizing:border-box;
                line-height:1.5;margin-bottom:6px;"></textarea>
 
-      <!-- Preview -->
       <div id="unitPatternPreview" style="min-height:28px;margin-bottom:16px;font-size:0.8rem;color:#8b6f47;"></div>
 
-      <!-- Hidden edit index -->
       <input type="hidden" id="unitEditIndex" value="-1">
 
       <div style="display:flex;gap:10px;">
@@ -4414,7 +4553,6 @@
     <div style="background:white;border-radius:16px;width:min(96vw,460px);max-height:90vh;
                 overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.28);font-family:Arial,sans-serif;display:flex;flex-direction:column;">
 
-      <!-- Header -->
       <div style="background:#8b6f47;border-radius:16px 16px 0 0;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
         <span style="font-weight:700;font-size:1rem;color:white;">📥 Import Word Set</span>
         <button onclick="closeImportModal()" style="background:none;border:none;color:rgba(255,255,255,0.85);font-size:1.4rem;cursor:pointer;line-height:1;padding:2px 6px;">×</button>
@@ -4436,10 +4574,8 @@
         </div>
       </div>
 
-      <!-- Word rows — built dynamically -->
       <div id="importWordRows" style="padding:0 18px 8px;display:flex;flex-direction:column;gap:8px;"></div>
 
-      <!-- Footer -->
       <div style="padding:12px 18px 18px;border-top:1px solid #f0e8d8;flex-shrink:0;display:flex;gap:10px;">
         <button onclick="closeImportModal()" style="flex:1;background:white;border:2px solid #c8b89a;color:#8b6f47;font-size:0.9rem;font-weight:700;padding:10px;border-radius:10px;cursor:pointer;">Cancel</button>
         <button onclick="confirmImport()" style="flex:2;background:#8b6f47;border:none;color:white;font-size:0.9rem;font-weight:700;padding:10px;border-radius:10px;cursor:pointer;">✓ Confirm</button>
