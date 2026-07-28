@@ -1452,50 +1452,71 @@
         </svg>
       </div>
 
-      <!-- Tool toggle — top-left inside notepad -->
-      <div id="tracingToolToggle" style="position:absolute;left:20px;bottom:20px;top:auto;z-index:15;display:flex;flex-direction:column;border-radius:12px;overflow:hidden;border:2px solid #c8b89a;box-shadow:0 2px 6px rgba(0,0,0,0.15);cursor:grab;touch-action:none;">
-        <!-- Drag handle -->
-        <div id="tracingToolHandle" style="background:#e8ddd0;height:14px;display:flex;align-items:center;justify-content:center;cursor:grab;flex-shrink:0;">
-          <div style="width:28px;height:3px;background:#b0a090;border-radius:2px;"></div>
+      <!-- Tool picker — skinny panel; lens larger and sits on top (overflow visible) -->
+      <div id="tracingToolToggle" style="position:absolute;left:20px;bottom:20px;top:auto;z-index:40;display:flex;flex-direction:column;width:60px;border-radius:16px;overflow:visible;border:2px solid #c8b89a;box-shadow:0 2px 10px rgba(0,0,0,0.16);background:#efe6d8;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;">
+        <!-- Drag handle — unchanged look (not affected by larger lens) -->
+        <div id="tracingToolHandle" style="background:#e8ddd0;height:18px;display:flex;align-items:center;justify-content:center;cursor:grab;flex-shrink:0;border-radius:14px 14px 0 0;transition:height 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;position:relative;z-index:5;overflow:hidden;">
+          <div id="tracingToolHandleBar" style="width:36px;height:4px;background:#b0a090;border-radius:2px;transition:width 0.15s ease, height 0.15s ease, background 0.15s ease, border-radius 0.15s ease;"></div>
         </div>
-        <div style="display:flex;">        <!-- Pencil side -->
-        <button id="tracingToolDraw" onclick="setTracingTool('draw')" style="
-          width:52px;height:46px;border:none;cursor:pointer;
-          background:#fff3c0;
-          display:flex;align-items:center;justify-content:center;
-          -webkit-tap-highlight-color:transparent;outline:none;
-        ">
-          <!-- Pencil: tip at bottom, rotated +45° → tip points down-right -->
-          <svg width="30" height="30" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
-            <g transform="rotate(45 22 22)">
-              <rect x="14" y="5" width="16" height="5" rx="1" fill="#f4a0a0" stroke="#2b2b2b" stroke-width="1.5"/>
-              <rect x="14" y="10" width="16" height="4" fill="#c8dce8" stroke="#2b2b2b" stroke-width="1.5"/>
-              <rect x="14" y="14" width="16" height="18" rx="1" fill="#f5a623" stroke="#2b2b2b" stroke-width="1.5"/>
-              <rect x="17" y="14" width="5" height="18" fill="#ffc93c" stroke="none"/>
-              <polygon points="14,32 30,32 27,39 17,39" fill="#f9d9a8" stroke="#2b2b2b" stroke-width="1.5" stroke-linejoin="round"/>
-              <polygon points="18,39 26,39 22,44" fill="#d4956a" stroke="#2b2b2b" stroke-width="1"/>
-            </g>
-          </svg>
-        </button>
-        <!-- Divider -->
-        <div style="width:1px;background:#c8b89a;flex-shrink:0;"></div>
-        <!-- Eraser side -->
-        <button id="tracingToolErase" onclick="setTracingTool('erase')" style="
-          width:52px;height:46px;border:none;cursor:pointer;
-          background:#f0f0f0;
-          display:flex;align-items:center;justify-content:center;
-          -webkit-tap-highlight-color:transparent;outline:none;
-        ">
-          <!-- Eraser: 45°, rubber bottom-left -->
-          <svg width="28" height="28" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
-            <g transform="rotate(-45 22 22)">
-              <rect x="10" y="8" width="24" height="20" rx="3" fill="#a8d8f0" stroke="#2b2b2b" stroke-width="1.5"/>
-              <rect x="10" y="25" width="24" height="4" fill="white" stroke="#2b2b2b" stroke-width="1"/>
-              <rect x="10" y="28" width="24" height="9" rx="2" fill="#e07070" stroke="#2b2b2b" stroke-width="1.5"/>
-            </g>
-          </svg>
-        </button>
-        </div><!-- end inner flex row -->
+        <!-- Tools column (skinny); lens overlays and can extend past sides -->
+        <div id="tracingToolScrollViewport" style="position:relative;height:136px;width:60px;overflow:visible;touch-action:none;cursor:ns-resize;background:linear-gradient(180deg,#f6f0e6 0%,#efe6d8 100%);border-radius:0 0 14px 14px;z-index:1;">
+          <div id="tracingToolScrollTrack" style="display:flex;flex-direction:column;position:relative;z-index:1;width:60px;">
+            <button id="tracingToolDraw" type="button" onclick="setTracingTool('draw')" style="
+              width:60px;height:68px;border:none;cursor:pointer;flex-shrink:0;padding:0;
+              background:transparent;
+              display:flex;align-items:center;justify-content:center;
+              -webkit-tap-highlight-color:transparent;outline:none;
+              transition:opacity 0.2s ease;
+            ">
+              <svg width="40" height="40" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
+                <g transform="rotate(45 22 22)">
+                  <rect x="14" y="5" width="16" height="5" rx="1" fill="#f4a0a0" stroke="#2b2b2b" stroke-width="1.5"/>
+                  <rect x="14" y="10" width="16" height="4" fill="#c8dce8" stroke="#2b2b2b" stroke-width="1.5"/>
+                  <rect x="14" y="14" width="16" height="18" rx="1" fill="#f5a623" stroke="#2b2b2b" stroke-width="1.5"/>
+                  <rect x="17" y="14" width="5" height="18" fill="#ffc93c" stroke="none"/>
+                  <polygon points="14,32 30,32 27,39 17,39" fill="#f9d9a8" stroke="#2b2b2b" stroke-width="1.5" stroke-linejoin="round"/>
+                  <polygon points="18,39 26,39 22,44" fill="#d4956a" stroke="#2b2b2b" stroke-width="1"/>
+                </g>
+              </svg>
+            </button>
+            <button id="tracingToolErase" type="button" onclick="setTracingTool('erase')" style="
+              width:60px;height:68px;border:none;cursor:pointer;flex-shrink:0;padding:0;
+              background:transparent;
+              display:flex;align-items:center;justify-content:center;
+              -webkit-tap-highlight-color:transparent;outline:none;
+              transition:opacity 0.2s ease;
+            ">
+              <svg width="38" height="38" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
+                <g transform="rotate(-45 22 22)">
+                  <rect x="10" y="8" width="24" height="20" rx="3" fill="#a8d8f0" stroke="#2b2b2b" stroke-width="1.5"/>
+                  <rect x="10" y="25" width="24" height="4" fill="white" stroke="#2b2b2b" stroke-width="1"/>
+                  <rect x="10" y="28" width="24" height="9" rx="2" fill="#e07070" stroke="#2b2b2b" stroke-width="1.5"/>
+                </g>
+              </svg>
+            </button>
+          </div>
+          <!-- Lens larger than panel, centered, sits on top of icons -->
+          <div id="tracingToolGlass" style="
+            position:absolute;left:50%;top:2px;width:76px;height:64px;z-index:3;
+            margin-left:-38px;
+            border-radius:18px;pointer-events:none;
+            box-sizing:border-box;
+            background:transparent;
+            border:3px solid #6b5a45;
+            box-shadow:
+              0 0 0 2px rgba(255,255,255,0.9),
+              0 3px 10px rgba(60,45,30,0.22),
+              inset 0 0 0 1px rgba(255,255,255,0.5);
+            transition:transform 0.28s cubic-bezier(0.22,0.9,0.3,1);
+            will-change:transform;
+          ">
+            <div style="
+              position:absolute;left:10px;top:7px;width:24px;height:12px;border-radius:10px;
+              background:linear-gradient(180deg, rgba(255,255,255,0.45), rgba(255,255,255,0));
+              pointer-events:none;
+            "></div>
+          </div>
+        </div>
       </div><!-- end tracingToolToggle -->
 
     </div><!-- end tracingNotebook -->
@@ -3038,22 +3059,46 @@
 
     // Full-strength hues; see-through amount is TRACING_STROKE_ALPHA
     // so students can still see the dashed guide lines underneath
+    // True / school primary hues (full-strength; opacity controlled separately)
     const tracingColors = [
-      '#e74c3c', // Red
-      '#2980b9', // Blue
-      '#f1c40f', // Yellow
-      '#27ae60', // Green
-      '#2c2c2c', // Black
-      '#e67e22', // Orange
-      '#8e44ad', // Purple
-      '#e91e8c', // Pink
-      '#795548', // Brown
-      '#757575', // Gray
+      '#FF0000', // Red (true primary)
+      '#0066FF', // Blue (true primary, screen-readable)
+      '#FFD100', // Yellow (true primary)
+      '#00A651', // Green
+      '#111111', // Black
+      '#FF6600', // Orange
+      '#9B00E8', // Purple
+      '#FF2D95', // Pink
+      '#8B4513', // Brown
+      '#666666', // Gray
     ];
-    // ~3× previous stroke (was 18)
+    // DIY + Alphabet highlighter width (all devices: iPhone, iPad, Desktop)
     const TRACING_STROKE_WIDTH = 54;
-    // Lower = more transparent over SVG guides (was ~0.82 / 0.72)
-    const TRACING_STROKE_ALPHA = 0.38;
+    // Stronger opacity on all tabs/devices (less transparent highlighter)
+    const TRACING_STROKE_ALPHA = 0.78;
+    // Capital-M stem fraction of em size (Comic Sans / Chalkboard-style fill)
+    // Used so SVG pen matches the visual boundary weight of Alphabet-tab "M"
+    const TRACING_ALPHABET_M_STEM_RATIO = 0.14;
+
+    function getTracingStrokeWidth() {
+      // DIY / Alphabet: fixed width
+      if (typeof tracingMode === 'undefined' || tracingMode !== 'svg') {
+        return TRACING_STROKE_WIDTH;
+      }
+      // SVG tab: match Alphabet capital-M stem thickness at current canvas size
+      const canvas = document.getElementById('tracingCanvas');
+      if (!canvas || typeof getTracingLines !== 'function') {
+        return TRACING_STROKE_WIDTH;
+      }
+      const dpr = window.devicePixelRatio || 1;
+      const H = canvas.height / dpr;
+      // Alphabet tab always scales ruling as 2 glyphs ("A a")
+      const lines = getTracingLines(H, 2);
+      const fontSize = (lines.l3 - lines.l1) / 0.72;
+      const stem = fontSize * TRACING_ALPHABET_M_STEM_RATIO;
+      // Keep usable on small phones; cap on very tall desktops
+      return Math.max(40, Math.min(Math.round(stem), 100));
+    }
     let tracingColorIdx   = 0;
     let tracingColorQueue = [];
 
@@ -3144,6 +3189,9 @@
 
       drawTracingPage();
       wireTracingEvents(canvas);
+      if (typeof window.clampTracingToolToggle === 'function') {
+        setTimeout(window.clampTracingToolToggle, 30);
+      }
     }
 
     // Four-line notebook ruling matching reference image:
@@ -3358,6 +3406,7 @@
       // But don't reset tool when called from replayStrokes
       if (!tracingReplayMode) {
         tracingStrokes = [];
+        tracingCurrentStroke = null;
         const eraseBtn = document.getElementById('tracingEraseBtn');
         if (eraseBtn) eraseBtn.style.display = 'none';
         tracingToolMode = 'draw';
@@ -3557,6 +3606,11 @@
         const p = getPos(e);
         tracingLastX = p.x; tracingLastY = p.y;
         pickColorForPosition(p.x);
+        if (tracingToolMode === 'erase') {
+          eraseAtPoint(p.x, p.y);
+        } else {
+          beginTracingStroke(p.x, p.y);
+        }
         showCursor(p.x, p.y, !!e.touches);
       }
 
@@ -3564,13 +3618,18 @@
         e.preventDefault();
         if (!tracingDrawing) return;
         const p = getPos(e);
-        paintStroke(tracingLastX, tracingLastY, p.x, p.y);
+        if (tracingToolMode === 'erase') {
+          eraseAtPoint(p.x, p.y);
+        } else {
+          extendTracingStroke(p.x, p.y);
+        }
         tracingLastX = p.x; tracingLastY = p.y;
         showCursor(p.x, p.y, !!e.touches);
       }
 
       function endDraw(e) {
         tracingDrawing = false;
+        tracingCurrentStroke = null;
         hideCursor();
       }
 
@@ -3592,92 +3651,382 @@
     let tracingToolMode   = 'draw';
     let tracingStrokes    = [];
 
+    // Vertical tool picker: both icons visible + magnifier loupe selector
+    const TRACING_TOOL_ITEM_H = 68;
+
+    function updateTracingToolScroll(mode, animate) {
+      const glass = document.getElementById('tracingToolGlass');
+      if (!glass) return;
+      if (animate === false) glass.style.transition = 'none';
+      else glass.style.transition = 'transform 0.28s cubic-bezier(0.22,0.9,0.3,1)';
+      // Glass sits over pencil (top:4) or eraser (top:4 + 72)
+      const y = (mode === 'erase') ? TRACING_TOOL_ITEM_H : 0;
+      glass.style.transform = 'translateY(' + y + 'px)';
+      if (animate === false) {
+        void glass.offsetHeight;
+        glass.style.transition = 'transform 0.28s cubic-bezier(0.22,0.9,0.3,1)';
+      }
+    }
+
     function setTracingTool(mode) {
-      tracingToolMode = mode;
+      tracingToolMode = mode === 'erase' ? 'erase' : 'draw';
       const drawBtn  = document.getElementById('tracingToolDraw');
       const eraseBtn = document.getElementById('tracingToolErase');
-      if (!drawBtn || !eraseBtn) return;
-      if (mode === 'draw') {
-        drawBtn.style.background  = '#fff3c0';
-        drawBtn.style.opacity     = '1';
-        eraseBtn.style.background = '#f0f0f0';
-        eraseBtn.style.opacity    = '1';
-      } else {
-        eraseBtn.style.background = '#ffe0e0';
-        eraseBtn.style.opacity    = '1';
-        drawBtn.style.background  = '#f0f0f0';
-        drawBtn.style.opacity     = '1';
+      if (drawBtn && eraseBtn) {
+        // Selected: full color + slight magnify under lens
+        // Unselected: grayed / dulled out
+        const dull = 'grayscale(1) brightness(0.92) contrast(0.85)';
+        drawBtn.style.transition  = 'transform 0.28s cubic-bezier(0.22,0.9,0.3,1), opacity 0.2s ease, filter 0.2s ease';
+        eraseBtn.style.transition = 'transform 0.28s cubic-bezier(0.22,0.9,0.3,1), opacity 0.2s ease, filter 0.2s ease';
+        if (tracingToolMode === 'draw') {
+          drawBtn.style.opacity    = '1';
+          drawBtn.style.filter     = 'none';
+          drawBtn.style.transform  = 'scale(1.18)';
+          eraseBtn.style.opacity   = '0.38';
+          eraseBtn.style.filter    = dull;
+          eraseBtn.style.transform = 'scale(0.9)';
+        } else {
+          eraseBtn.style.opacity   = '1';
+          eraseBtn.style.filter    = 'none';
+          eraseBtn.style.transform = 'scale(1.18)';
+          drawBtn.style.opacity    = '0.38';
+          drawBtn.style.filter     = dull;
+          drawBtn.style.transform  = 'scale(0.9)';
+        }
       }
+      updateTracingToolScroll(tracingToolMode);
       // Swap cursor icon
       const cDraw  = document.getElementById('cursorIconDraw');
       const cErase = document.getElementById('cursorIconErase');
-      if (cDraw)  cDraw.style.display  = mode === 'draw'  ? '' : 'none';
-      if (cErase) cErase.style.display = mode === 'erase' ? '' : 'none';
+      if (cDraw)  cDraw.style.display  = tracingToolMode === 'draw'  ? '' : 'none';
+      if (cErase) cErase.style.display = tracingToolMode === 'erase' ? '' : 'none';
     }
 
-    function replayStrokes() {
-      const saved = tracingStrokes.slice();
-      tracingReplayMode = true;
-      drawTracingPage();
-      tracingReplayMode = false;
-      tracingStrokes = saved;
-      const ctx = tracingCtx;
-      if (!ctx) return;
-      tracingStrokes.forEach(s => {
-        ctx.globalCompositeOperation = 'source-over';
-        ctx.strokeStyle = s.color;
-        ctx.lineWidth   = TRACING_STROKE_WIDTH;
-        ctx.lineCap     = 'round';
-        ctx.lineJoin    = 'round';
-        ctx.globalAlpha = TRACING_STROKE_ALPHA;
+    // Vertical swipe / wheel moves the glass selector between tools
+    (function initTracingToolScroller() {
+      let startY = 0;
+      let draggingScroll = false;
+      let moved = false;
+
+      function onStart(e) {
+        if (e.target && e.target.closest && e.target.closest('#tracingToolHandle')) return;
+        const vp = document.getElementById('tracingToolScrollViewport');
+        if (!vp) return;
+        const t = e.touches ? e.touches[0] : e;
+        if (!t) return;
+        if (e.target !== vp && !vp.contains(e.target)) return;
+        draggingScroll = true;
+        moved = false;
+        startY = t.clientY;
+      }
+
+      function onMove(e) {
+        if (!draggingScroll) return;
+        const t = e.touches ? e.touches[0] : e;
+        if (!t) return;
+        const dy = t.clientY - startY;
+        if (Math.abs(dy) > 8) moved = true;
+        // Live glass nudge while dragging
+        const glass = document.getElementById('tracingToolGlass');
+        if (glass && Math.abs(dy) > 2) {
+          const base = (tracingToolMode === 'erase') ? TRACING_TOOL_ITEM_H : 0;
+          const nudge = Math.max(-36, Math.min(36, dy * 0.4));
+          let y = base + nudge;
+          y = Math.max(0, Math.min(TRACING_TOOL_ITEM_H, y));
+          glass.style.transition = 'none';
+          glass.style.transform = 'translateY(' + y + 'px)';
+        }
+        e.preventDefault();
+      }
+
+      function onEnd(e) {
+        if (!draggingScroll) return;
+        draggingScroll = false;
+        const t = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0] : e;
+        const dy = t && t.clientY != null ? (t.clientY - startY) : 0;
+        if (moved && Math.abs(dy) > 16) {
+          // Swipe up → eraser; swipe down → pencil
+          if (dy < 0) setTracingTool('erase');
+          else setTracingTool('draw');
+        } else {
+          updateTracingToolScroll(tracingToolMode);
+        }
+      }
+
+      function onWheel(e) {
+        const toggle = document.getElementById('tracingToolToggle');
+        if (!toggle || !toggle.contains(e.target)) return;
+        if (e.target.closest && e.target.closest('#tracingToolHandle')) return;
+        e.preventDefault();
+        if (e.deltaY > 4) setTracingTool('erase');
+        else if (e.deltaY < -4) setTracingTool('draw');
+      }
+
+      function bind() {
+        const vp = document.getElementById('tracingToolScrollViewport');
+        const toggle = document.getElementById('tracingToolToggle');
+        if (!vp || vp.dataset.scrollBound === '1') return;
+        vp.dataset.scrollBound = '1';
+        vp.addEventListener('mousedown', onStart);
+        vp.addEventListener('touchstart', onStart, { passive: false });
+        window.addEventListener('mousemove', onMove, { passive: false });
+        window.addEventListener('touchmove', onMove, { passive: false });
+        window.addEventListener('mouseup', onEnd);
+        window.addEventListener('touchend', onEnd);
+        if (toggle) toggle.addEventListener('wheel', onWheel, { passive: false });
+        updateTracingToolScroll(tracingToolMode || 'draw', false);
+      }
+
+      const origOpen = window.openTracingPage;
+      window.openTracingPage = function() {
+        if (origOpen) origOpen.apply(this, arguments);
+        setTimeout(bind, 80);
+        setTimeout(function() { setTracingTool(tracingToolMode || 'draw'); }, 100);
+      };
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() { setTimeout(bind, 50); });
+      } else {
+        setTimeout(bind, 50);
+      }
+    })();
+
+    // Continuous Freeform-style highlighter strokes (one path = one alpha, no bead circles)
+    let tracingCurrentStroke = null;
+    let tracingInkRaf = null;
+
+    function strokePointCount(s) {
+      if (s.points && s.points.length) return s.points.length;
+      // legacy segment shape {x1,y1,x2,y2}
+      return (s.x1 != null && s.x2 != null) ? 2 : 0;
+    }
+
+    function paintOneTracingStroke(ctx, s) {
+      if (!ctx || !s) return;
+      // Prefer continuous polyline; fall back to legacy segment
+      let pts = s.points;
+      if (!pts || !pts.length) {
+        if (s.x1 == null) return;
+        pts = [{ x: s.x1, y: s.y1 }, { x: s.x2, y: s.y2 }];
+      }
+      ctx.save();
+      ctx.globalCompositeOperation = 'source-over';
+      const strokeW = getTracingStrokeWidth();
+      ctx.strokeStyle = s.color;
+      ctx.fillStyle   = s.color;
+      ctx.lineWidth   = strokeW;
+      ctx.lineCap     = 'round';
+      ctx.lineJoin    = 'round';
+      ctx.globalAlpha = TRACING_STROKE_ALPHA;
+      if (pts.length === 1) {
         ctx.beginPath();
-        ctx.moveTo(s.x1, s.y1);
-        ctx.lineTo(s.x2, s.y2);
+        ctx.arc(pts[0].x, pts[0].y, strokeW / 2, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, pts[0].y);
+        for (let i = 1; i < pts.length; i++) {
+          ctx.lineTo(pts[i].x, pts[i].y);
+        }
         ctx.stroke();
-        ctx.globalAlpha = 1;
-      });
+      }
+      ctx.restore();
+    }
+
+    function paintAllTracingStrokes(ctx) {
+      if (!ctx) return;
+      for (let i = 0; i < tracingStrokes.length; i++) {
+        paintOneTracingStroke(ctx, tracingStrokes[i]);
+      }
       const clearBtn = document.getElementById('tracingEraseBtn');
       if (clearBtn) clearBtn.style.display = tracingStrokes.length > 0 ? 'inline-flex' : 'none';
     }
 
-    function paintStroke(x1, y1, x2, y2) {
-      const ctx = tracingCtx;
-      if (!ctx) return;
+    function presentTracingInk() {
+      // Redraw guides, then paint each stroke as ONE continuous path (seamless alpha)
+      const saved = tracingStrokes.slice();
+      const cur = tracingCurrentStroke;
+      tracingReplayMode = true;
+      drawTracingPage();
+      tracingReplayMode = false;
+      tracingStrokes = saved;
+      tracingCurrentStroke = cur;
+      paintAllTracingStrokes(tracingCtx);
+    }
 
-      if (tracingToolMode === 'erase') {
-        // Scale erase hit area with thicker strokes
-        const eraseR = Math.max(60, TRACING_STROKE_WIDTH * 1.4);
-        const prevLen = tracingStrokes.length;
-        tracingStrokes = tracingStrokes.filter(s => {
-          // Check if stroke segment is near the erase path
-          const mx = (s.x1 + s.x2) / 2, my = (s.y1 + s.y2) / 2;
-          const dx1 = s.x1 - x1, dy1 = s.y1 - y1;
-          const dx2 = s.x2 - x1, dy2 = s.y2 - y1;
-          const dist1 = Math.sqrt(dx1*dx1 + dy1*dy1);
-          const dist2 = Math.sqrt(dx2*dx2 + dy2*dy2);
-          const distM = Math.sqrt((mx-x1)*(mx-x1) + (my-y1)*(my-y1));
-          return dist1 > eraseR && dist2 > eraseR && distM > eraseR;
-        });
-        if (tracingStrokes.length !== prevLen) replayStrokes();
-      } else {
-        const color = tracingColors[tracingColorIdx % tracingColors.length];
-        tracingStrokes.push({ x1, y1, x2, y2, color });
-        ctx.globalCompositeOperation = 'source-over';
-        ctx.strokeStyle = color;
-        ctx.lineWidth   = TRACING_STROKE_WIDTH;
-        ctx.lineCap     = 'round';
-        ctx.lineJoin    = 'round';
-        ctx.globalAlpha = TRACING_STROKE_ALPHA;
-        ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
-        ctx.stroke();
-        ctx.globalAlpha = 1;
+    function requestTracingInkPresent() {
+      if (tracingInkRaf != null) return;
+      tracingInkRaf = requestAnimationFrame(function () {
+        tracingInkRaf = null;
+        presentTracingInk();
+      });
+    }
 
-        // Show clear button after first draw stroke
-        const clearBtn = document.getElementById('tracingEraseBtn');
-        if (clearBtn && clearBtn.style.display === 'none') clearBtn.style.display = 'inline-flex';
+    function beginTracingStroke(x, y) {
+      const color = tracingColors[tracingColorIdx % tracingColors.length];
+      tracingCurrentStroke = { color: color, points: [{ x: x, y: y }] };
+      tracingStrokes.push(tracingCurrentStroke);
+      requestTracingInkPresent();
+      const clearBtn = document.getElementById('tracingEraseBtn');
+      if (clearBtn && clearBtn.style.display === 'none') clearBtn.style.display = 'inline-flex';
+    }
+
+    function extendTracingStroke(x, y) {
+      if (!tracingCurrentStroke) {
+        beginTracingStroke(x, y);
+        return;
       }
+      const pts = tracingCurrentStroke.points;
+      const last = pts[pts.length - 1];
+      // Skip tiny jitter so path stays smooth and light
+      const dx = x - last.x, dy = y - last.y;
+      if (dx * dx + dy * dy < 0.8) return;
+      pts.push({ x: x, y: y });
+      requestTracingInkPresent();
+    }
+
+    function distPointToSeg(px, py, x1, y1, x2, y2) {
+      const dx = x2 - x1, dy = y2 - y1;
+      const len2 = dx * dx + dy * dy;
+      if (len2 < 0.0001) {
+        const ex = px - x1, ey = py - y1;
+        return Math.sqrt(ex * ex + ey * ey);
+      }
+      let t = ((px - x1) * dx + (py - y1) * dy) / len2;
+      if (t < 0) t = 0; else if (t > 1) t = 1;
+      const mx = x1 + t * dx, my = y1 + t * dy;
+      const ex = px - mx, ey = py - my;
+      return Math.sqrt(ex * ex + ey * ey);
+    }
+
+    function strokeHitsEraser(s, x, y, eraseR) {
+      // Still used as a quick “any contact?” test
+      let pts = s.points;
+      if (!pts || !pts.length) {
+        if (s.x1 == null) return false;
+        pts = [{ x: s.x1, y: s.y1 }, { x: s.x2, y: s.y2 }];
+      }
+      if (pts.length === 1) {
+        const dx = pts[0].x - x, dy = pts[0].y - y;
+        return Math.sqrt(dx * dx + dy * dy) <= eraseR;
+      }
+      for (let i = 1; i < pts.length; i++) {
+        if (distPointToSeg(x, y, pts[i - 1].x, pts[i - 1].y, pts[i].x, pts[i].y) <= eraseR) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    // Punch a circular hole out of a continuous stroke; keep leftover sections.
+    // (Restores pre-polyline eraser behaviour: drag removes only local ink.)
+    function eraseSectionFromStroke(s, x, y, eraseR) {
+      let pts = s.points;
+      if (!pts || !pts.length) {
+        if (s.x1 == null) return [];
+        pts = [{ x: s.x1, y: s.y1 }, { x: s.x2, y: s.y2 }];
+      }
+
+      const eraseR2 = eraseR * eraseR;
+      // Densify long segments so the eraser can cut through mid-segment
+      const dense = [];
+      for (let i = 0; i < pts.length; i++) {
+        if (i === 0) {
+          dense.push({ x: pts[i].x, y: pts[i].y });
+          continue;
+        }
+        const a = pts[i - 1];
+        const b = pts[i];
+        const segDist = distPointToSeg(x, y, a.x, a.y, b.x, b.y);
+        const len = Math.sqrt((b.x - a.x) * (b.x - a.x) + (b.y - a.y) * (b.y - a.y));
+        if (segDist <= eraseR && len > 3) {
+          const steps = Math.max(2, Math.ceil(len / 3));
+          for (let k = 1; k < steps; k++) {
+            const t = k / steps;
+            dense.push({
+              x: a.x + (b.x - a.x) * t,
+              y: a.y + (b.y - a.y) * t
+            });
+          }
+        }
+        dense.push({ x: b.x, y: b.y });
+      }
+
+      const runs = [];
+      let cur = [];
+      for (let i = 0; i < dense.length; i++) {
+        const p = dense[i];
+        const dx = p.x - x, dy = p.y - y;
+        if (dx * dx + dy * dy > eraseR2) {
+          cur.push(p);
+        } else if (cur.length) {
+          runs.push(cur);
+          cur = [];
+        }
+      }
+      if (cur.length) runs.push(cur);
+
+      const out = [];
+      for (let r = 0; r < runs.length; r++) {
+        const run = runs[r];
+        // Drop tiny leftovers that are just dust after a cut
+        if (run.length === 1) {
+          out.push({ color: s.color, points: run });
+        } else if (run.length > 1) {
+          // Collapse near-duplicate densify points a bit
+          const cleaned = [run[0]];
+          for (let i = 1; i < run.length; i++) {
+            const prev = cleaned[cleaned.length - 1];
+            const ddx = run[i].x - prev.x, ddy = run[i].y - prev.y;
+            if (ddx * ddx + ddy * ddy >= 1) cleaned.push(run[i]);
+          }
+          if (cleaned.length) out.push({ color: s.color, points: cleaned });
+        }
+      }
+      return out;
+    }
+
+    function eraseAtPoint(x, y) {
+      // Brush size similar to the old segment eraser
+      const eraseR = Math.max(60, getTracingStrokeWidth() * 1.4);
+      let changed = false;
+      const next = [];
+
+      for (let i = 0; i < tracingStrokes.length; i++) {
+        const s = tracingStrokes[i];
+        if (!strokeHitsEraser(s, x, y, eraseR)) {
+          next.push(s);
+          continue;
+        }
+        const pieces = eraseSectionFromStroke(s, x, y, eraseR);
+        // If nothing left, or split/shortened — count as a change
+        const beforeN = (s.points && s.points.length) ? s.points.length : 2;
+        const afterN = pieces.reduce(function (n, p) { return n + p.points.length; }, 0);
+        if (pieces.length !== 1 || afterN < beforeN) changed = true;
+        for (let j = 0; j < pieces.length; j++) next.push(pieces[j]);
+      }
+
+      if (changed || next.length !== tracingStrokes.length) {
+        tracingStrokes = next;
+        // Don't keep a live draw stroke reference if it was cut
+        if (tracingCurrentStroke && tracingStrokes.indexOf(tracingCurrentStroke) < 0) {
+          tracingCurrentStroke = null;
+        }
+        requestTracingInkPresent();
+      }
+    }
+
+    function replayStrokes() {
+      presentTracingInk();
+    }
+
+    // Legacy entry kept for any remaining callers; continuous path preferred
+    function paintStroke(x1, y1, x2, y2) {
+      if (tracingToolMode === 'erase') {
+        eraseAtPoint(x2, y2);
+        return;
+      }
+      if (!tracingCurrentStroke) beginTracingStroke(x1, y1);
+      extendTracingStroke(x2, y2);
     }
 
     // ── Tracing word list (manual) ─────────────────────────────────────────
@@ -4085,30 +4434,113 @@
       drawTracingPage();
     }
 
-    // ── Draggable tool toggle ──────────────────────────────────────────────
+    // ── Draggable tool toggle (+ keep on-screen in landscape/resize) ──────
     (function() {
       let dragging = false, startX, startY, origLeft, origTop;
+      let handleActive = false;
 
       function getNotebook() { return document.getElementById('tracingNotebook'); }
+      function getToggle() { return document.getElementById('tracingToolToggle'); }
+      function getHandle() { return document.getElementById('tracingToolHandle'); }
+      function getHandleBar() { return document.getElementById('tracingToolHandleBar'); }
 
-      function onDragStart(e) {
-        const toggle = document.getElementById('tracingToolToggle');
+      function setHandleDragging(on) {
+        handleActive = !!on;
+        const handle = getHandle();
+        const bar = getHandleBar();
+        if (!handle || !bar) return;
+        if (on) {
+          // Extended / active mover bar so user knows drag is on
+          handle.style.height = '28px';
+          handle.style.background = '#8b6f47';
+          handle.style.boxShadow = 'inset 0 0 0 2px rgba(255,255,255,0.35), 0 2px 6px rgba(0,0,0,0.18)';
+          handle.style.cursor = 'grabbing';
+          bar.style.width = '54px';
+          bar.style.height = '6px';
+          bar.style.borderRadius = '4px';
+          bar.style.background = '#fff8ee';
+          // second cue: slight horizontal stretch of panel top feel
+          bar.style.boxShadow = '0 0 0 1px rgba(255,255,255,0.4)';
+        } else {
+          handle.style.height = '18px';
+          handle.style.background = '#e8ddd0';
+          handle.style.boxShadow = 'none';
+          handle.style.cursor = 'grab';
+          bar.style.width = '36px';
+          bar.style.height = '4px';
+          bar.style.borderRadius = '2px';
+          bar.style.background = '#b0a090';
+          bar.style.boxShadow = 'none';
+        }
+      }
+
+      // Keep panel fully inside the notebook (fixes landscape “disappearing”)
+      function clampToolTogglePosition() {
+        const toggle = getToggle();
         const notebook = getNotebook();
         if (!toggle || !notebook) return;
+        // Ensure visible
+        toggle.style.display = 'flex';
+        toggle.style.visibility = 'visible';
+        toggle.style.opacity = '1';
+        toggle.style.zIndex = '40';
+        toggle.style.pointerEvents = 'auto';
+
+        const nb = notebook.getBoundingClientRect();
+        if (nb.width < 20 || nb.height < 20) return;
+
+        const tw = toggle.offsetWidth || 84;
+        const th = toggle.offsetHeight || 170;
+        const maxL = Math.max(0, nb.width - tw);
+        const maxT = Math.max(0, nb.height - th);
+
+        // Convert bottom anchoring to top when needed (safe math)
+        const bottomRaw = toggle.style.bottom;
+        if (bottomRaw && bottomRaw !== 'auto' && bottomRaw !== '') {
+          const bottom = parseInt(bottomRaw, 10);
+          const b = isNaN(bottom) ? 20 : bottom;
+          toggle.style.top = Math.max(0, Math.min(maxT, nb.height - th - b)) + 'px';
+          toggle.style.bottom = 'auto';
+        }
+
+        let left = parseInt(toggle.style.left, 10);
+        let top = parseInt(toggle.style.top, 10);
+        if (isNaN(left)) left = Math.min(20, maxL);
+        if (isNaN(top)) top = maxT; // default bottom-ish
+
+        left = Math.max(0, Math.min(left, maxL));
+        top = Math.max(0, Math.min(top, maxT));
+        toggle.style.left = left + 'px';
+        toggle.style.top = top + 'px';
+        toggle.style.right = 'auto';
+        toggle.style.bottom = 'auto';
+      }
+      window.clampTracingToolToggle = clampToolTogglePosition;
+
+      function onDragStart(e) {
+        const toggle = getToggle();
+        const notebook = getNotebook();
+        if (!toggle || !notebook) return;
+        // Only from handle
+        if (e.target && e.target.closest && !e.target.closest('#tracingToolHandle')) return;
         dragging = true;
+        setHandleDragging(true);
         toggle.style.cursor = 'grabbing';
+        clampToolTogglePosition();
         const client = e.touches ? e.touches[0] : e;
         startX = client.clientX;
         startY = client.clientY;
-        origLeft = parseInt(toggle.style.left) || 50;
-        origTop  = parseInt(toggle.style.top)  || 10;
+        origLeft = parseInt(toggle.style.left, 10);
+        origTop  = parseInt(toggle.style.top, 10);
+        if (isNaN(origLeft)) origLeft = 20;
+        if (isNaN(origTop)) origTop = 10;
         e.preventDefault();
         e.stopPropagation();
       }
 
       function onDragMove(e) {
         if (!dragging) return;
-        const toggle = document.getElementById('tracingToolToggle');
+        const toggle = getToggle();
         const notebook = getNotebook();
         if (!toggle || !notebook) return;
         const client = e.touches ? e.touches[0] : e;
@@ -4117,10 +4549,11 @@
         const nb = notebook.getBoundingClientRect();
         const tw = toggle.offsetWidth;
         const th = toggle.offsetHeight;
-        const newLeft = Math.max(0, Math.min(origLeft + dx, nb.width  - tw));
-        const newTop  = Math.max(0, Math.min(origTop  + dy, nb.height - th));
+        const newLeft = Math.max(0, Math.min(origLeft + dx, Math.max(0, nb.width  - tw)));
+        const newTop  = Math.max(0, Math.min(origTop  + dy, Math.max(0, nb.height - th)));
         toggle.style.left = newLeft + 'px';
         toggle.style.top  = newTop  + 'px';
+        toggle.style.bottom = 'auto';
         e.preventDefault();
         e.stopPropagation();
       }
@@ -4128,38 +4561,65 @@
       function onDragEnd(e) {
         if (!dragging) return;
         dragging = false;
-        const toggle = document.getElementById('tracingToolToggle');
+        setHandleDragging(false);
+        const toggle = getToggle();
         if (toggle) toggle.style.cursor = 'grab';
+        clampToolTogglePosition();
       }
 
       function initDrag() {
-        const handle = document.getElementById('tracingToolHandle');
+        const handle = getHandle();
         if (!handle) return;
-        // Convert bottom-based position to top-based for drag math
-        const toggle = document.getElementById('tracingToolToggle');
-        const notebook = getNotebook();
-        if (toggle && notebook && toggle.style.bottom) {
-          const nb = notebook.getBoundingClientRect();
-          const th = toggle.offsetHeight;
-          const bottom = parseInt(toggle.style.bottom) || 20;
-          toggle.style.top    = (nb.height - th - bottom) + 'px';
-          toggle.style.bottom = '';
+        if (handle.dataset.dragBound === '1') {
+          clampToolTogglePosition();
+          return;
         }
+        handle.dataset.dragBound = '1';
+        clampToolTogglePosition();
         handle.addEventListener('mousedown',  onDragStart);
         handle.addEventListener('touchstart', onDragStart, { passive: false });
-        window.addEventListener('mousemove',  onDragMove);
+        window.addEventListener('mousemove',  onDragMove, { passive: false });
         window.addEventListener('touchmove',  onDragMove, { passive: false });
         window.addEventListener('mouseup',    onDragEnd);
         window.addEventListener('touchend',   onDragEnd);
+        window.addEventListener('resize', function() {
+          setTimeout(clampToolTogglePosition, 50);
+          setTimeout(clampToolTogglePosition, 250);
+        });
+        window.addEventListener('orientationchange', function() {
+          setTimeout(clampToolTogglePosition, 100);
+          setTimeout(clampToolTogglePosition, 400);
+        });
       }
 
-      // Init once tracing page opens
       const origOpen = window.openTracingPage;
       window.openTracingPage = function() {
         if (origOpen) origOpen.apply(this, arguments);
-        setTimeout(initDrag, 100);
+        setTimeout(initDrag, 80);
+        setTimeout(clampToolTogglePosition, 120);
+        setTimeout(clampToolTogglePosition, 350);
       };
+
+      // Also clamp after canvas setup (layout changes on rotate)
+      const _setup = window.setupTracingCanvas;
+      // setupTracingCanvas may be a local function — hook via periodic check when page open
+      setInterval(function() {
+        const page = document.getElementById('tracingPage');
+        if (page && page.style.display !== 'none' && page.style.display !== '') {
+          // only light clamp if panel drifted off-screen
+          const toggle = getToggle();
+          const notebook = getNotebook();
+          if (!toggle || !notebook) return;
+          const nb = notebook.getBoundingClientRect();
+          const tr = toggle.getBoundingClientRect();
+          if (tr.right < nb.left + 8 || tr.left > nb.right - 8 ||
+              tr.bottom < nb.top + 8 || tr.top > nb.bottom - 8) {
+            clampToolTogglePosition();
+          }
+        }
+      }, 800);
     })();
+
     const WHEEL_ITEM_H = 44;
     let wheelSnapTimeout  = null;
     let wheelPendingIndex = 0;
