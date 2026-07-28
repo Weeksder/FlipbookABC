@@ -3072,8 +3072,12 @@
       '#8B4513', // Brown
       '#666666', // Gray
     ];
-    // DIY + Alphabet highlighter width (all devices: iPhone, iPad, Desktop)
+    // Alphabet tab highlighter width (fixed)
     const TRACING_STROKE_WIDTH = 54;
+    // DIY fallback when canvas size not ready yet (thinner than Alphabet)
+    const TRACING_STROKE_WIDTH_DIY_FALLBACK = 28;
+    // DIY stroke as fraction of current guide letter font size (letters shrink as you type more)
+    const TRACING_DIY_STEM_RATIO = 0.085;
     // Stronger opacity on all tabs/devices (less transparent highlighter)
     const TRACING_STROKE_ALPHA = 0.78;
     // Capital-M stem fraction of em size (Comic Sans / Chalkboard-style fill)
@@ -3081,23 +3085,63 @@
     const TRACING_ALPHABET_M_STEM_RATIO = 0.14;
 
     function getTracingStrokeWidth() {
-      // DIY / Alphabet: fixed width
-      if (typeof tracingMode === 'undefined' || tracingMode !== 'svg') {
-        return TRACING_STROKE_WIDTH;
-      }
-      // SVG tab: match Alphabet capital-M stem thickness at current canvas size
       const canvas = document.getElementById('tracingCanvas');
-      if (!canvas || typeof getTracingLines !== 'function') {
+      const dpr = window.devicePixelRatio || 1;
+
+      // SVG tab: match Alphabet capital-M stem thickness at current canvas size
+      if (typeof tracingMode !== 'undefined' && tracingMode === 'svg') {
+        if (!canvas || typeof getTracingLines !== 'function') {
+          return TRACING_STROKE_WIDTH;
+        }
+        const H = canvas.height / dpr;
+        const lines = getTracingLines(H, 2);
+        const fontSize = (lines.l3 - lines.l1) / 0.72;
+        const stem = fontSize * TRACING_ALPHABET_M_STEM_RATIO;
+        return Math.max(40, Math.min(Math.round(stem), 100));
+      }
+
+      // Alphabet tab: fixed thick highlighter
+      if (typeof tracingMode !== 'undefined' && tracingMode === 'alphabet') {
         return TRACING_STROKE_WIDTH;
       }
-      const dpr = window.devicePixelRatio || 1;
+
+      // DIY (manual): thinner, and scales with guide letter size / letter count
+      if (!canvas || typeof getTracingLines !== 'function') {
+        return TRACING_STROKE_WIDTH_DIY_FALLBACK;
+      }
       const H = canvas.height / dpr;
-      // Alphabet tab always scales ruling as 2 glyphs ("A a")
-      const lines = getTracingLines(H, 2);
-      const fontSize = (lines.l3 - lines.l1) / 0.72;
-      const stem = fontSize * TRACING_ALPHABET_M_STEM_RATIO;
-      // Keep usable on small phones; cap on very tall desktops
-      return Math.max(40, Math.min(Math.round(stem), 100));
+      const n = (typeof tracingWord === 'string' && tracingWord.length)
+        ? Math.max(1, Math.min(tracingWord.length, 6))
+        : 1;
+      // Same ruling scale as DIY guide letters
+      const lines = getTracingLines(H, n);
+      let fontSize = (lines.l3 - lines.l1) / 0.72;
+      // Match DIY width shrink for long uppercase words when possible
+      if (typeof tracingWord === 'string' && tracingWord.length && tracingCtx) {
+        try {
+          const W = canvas.width / dpr;
+          const marginL = 48;
+          const totalW = W - marginL - 48;
+          tracingCtx.save();
+          tracingCtx.font = "400 " + fontSize + "px 'Comic Sans MS', 'Chalkboard SE', cursive";
+          const displayWord = (typeof applyTracingCase === 'function')
+            ? applyTracingCase(tracingWord)
+            : tracingWord;
+          const pad = fontSize * 0.03;
+          const letters = String(displayWord).split('');
+          let blockW = 0;
+          for (let i = 0; i < letters.length; i++) {
+            blockW += tracingCtx.measureText(letters[i]).width + pad;
+          }
+          if (blockW > totalW && blockW > 0) {
+            fontSize = fontSize * (totalW / blockW) * 0.97;
+          }
+          tracingCtx.restore();
+        } catch (e) { /* keep fontSize */ }
+      }
+      const w = fontSize * TRACING_DIY_STEM_RATIO;
+      // Thinner than Alphabet (54); shrinks as letters get smaller
+      return Math.max(14, Math.min(Math.round(w), 36));
     }
     let tracingColorIdx   = 0;
     let tracingColorQueue = [];
