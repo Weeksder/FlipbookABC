@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="screen-orientation" content="landscape">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="flashabc-build" content="295">
 
 <!-- Standalone Home Screen web app (iOS / iPadOS / Android) -->
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1289,6 +1293,7 @@
 
   <!-- ── Letter Tracing Page ── -->
   <div id="tracingPage" style="display:none;position:fixed;inset:0;z-index:50000;background:#fdf8f0;flex-direction:column;overflow:hidden;">
+    <div id="flashabcBuildBadge" style="position:absolute;right:8px;bottom:6px;z-index:60;font:600 10px/1 Arial,sans-serif;color:#b0a898;opacity:0.85;pointer-events:none;">build 295</div>
 
     <!-- Single combined header row: back | centred tabs | controls -->
     <div style="display:flex;align-items:flex-end;padding:8px 12px 0;background:#8b6f47;flex-shrink:0;">
@@ -2371,7 +2376,7 @@
           resetAllCards();
           break;
         case 'about':
-          alert('FlashABC - Notebook Flip Card Builder\nVersion 1.0\n\nClick cards to flip through letters!');
+          alert('FlashABC - Notebook Flip Card Builder\nBuild ' + (window.FLASHABC_BUILD || '?') + '\n\nDIY highlighter is thinner and scales with letter size.\nIf this Build number is missing/old, Safari cached an old copy — delete Home Screen icon and re-add from this page.');
           break;
         case 'tracing':
           openTracingPage();
@@ -3072,6 +3077,9 @@
       '#8B4513', // Brown
       '#666666', // Gray
     ];
+    // Build stamp — check Settings/About or window.FLASHABC_BUILD if Safari looks stale
+    const FLASHABC_BUILD = '295';
+    window.FLASHABC_BUILD = FLASHABC_BUILD;
     // Alphabet tab highlighter width (fixed)
     const TRACING_STROKE_WIDTH = 54;
     // DIY fallback when canvas size not ready yet (thinner than Alphabet)
