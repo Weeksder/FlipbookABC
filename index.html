@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="flashabc-build" content="312">
+<meta name="flashabc-build" content="314">
 
 <!-- Standalone Home Screen web app (iOS / iPadOS / Android) -->
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1555,7 +1555,7 @@
 
   <!-- ── Letter Tracing Page ── -->
   <div id="tracingPage" style="display:none;position:fixed;inset:0;z-index:50000;background:#fdf8f0;flex-direction:column;overflow:hidden;">
-    <div id="flashabcBuildBadge" style="position:absolute;right:8px;bottom:6px;z-index:60;font:600 10px/1 Arial,sans-serif;color:#b0a898;opacity:0.85;pointer-events:none;">build 312</div>
+    <div id="flashabcBuildBadge" style="position:absolute;right:8px;bottom:6px;z-index:60;font:600 10px/1 Arial,sans-serif;color:#b0a898;opacity:0.85;pointer-events:none;">build 314</div>
 
     <!-- Single combined header row: back | centred tabs | controls -->
     <div style="display:flex;align-items:flex-end;padding:8px 12px 0;background:#8b6f47;flex-shrink:0;">
@@ -3327,7 +3327,7 @@
       '#666666', // Gray
     ];
     // Build stamp — check Settings/About or window.FLASHABC_BUILD if Safari looks stale
-    const FLASHABC_BUILD = '312';
+    const FLASHABC_BUILD = '314';
     window.FLASHABC_BUILD = FLASHABC_BUILD;
     // Alphabet tab highlighter width (fixed)
     const TRACING_STROKE_WIDTH = 54;
@@ -3481,9 +3481,16 @@
     }
 
     let tracingLocked = false;
+    let tracingLockToggleAt = 0;
     function toggleTracingLock(force) {
-      if (force === true || force === false) tracingLocked = force;
-      else tracingLocked = !tracingLocked;
+      if (force === true || force === false) {
+        tracingLocked = force;
+      } else {
+        const now = Date.now();
+        if (now - tracingLockToggleAt < 400) return;
+        tracingLockToggleAt = now;
+        tracingLocked = !tracingLocked;
+      }
       const page = document.getElementById('tracingPage');
       const overlay = document.getElementById('tracingLockOverlay');
       const lockBtn = document.getElementById('tracingLockBtn');
@@ -3515,60 +3522,53 @@
     window.positionTracingLockBtn = positionTracingLockBtn;
 
     (function initTracingLockSwipe() {
+      // One pointer stream only (avoids touch + ghost-mouse double toggle).
+      // Tap on release. Swipe only if clearly down-left (~45°) and long enough.
       const TARGET = Math.PI * 0.75;
-      const TOL = 28 * Math.PI / 180;
-      const MIN = 46;
-      let sx = 0, sy = 0, tracking = false, swiped = false;
+      const TOL = 22 * Math.PI / 180;
+      const MIN_SWIPE = 72;
+      let sx = 0, sy = 0, tracking = false, swiped = false, pid = null;
 
       function onDown(e) {
-        if (e.button != null && e.button !== 0) return;
-        const t = e.touches ? e.touches[0] : e;
-        if (!t) return;
+        if (e.pointerType === 'mouse' && e.button !== 0) return;
         tracking = true;
         swiped = false;
-        sx = t.clientX;
-        sy = t.clientY;
+        pid = e.pointerId;
+        sx = e.clientX;
+        sy = e.clientY;
+        try { e.currentTarget.setPointerCapture(e.pointerId); } catch (err) {}
       }
       function onMove(e) {
-        if (!tracking || swiped) return;
-        const t = e.touches ? e.touches[0] : e;
-        if (!t) return;
-        const dx = t.clientX - sx;
-        const dy = t.clientY - sy;
+        if (!tracking || swiped || e.pointerId !== pid) return;
+        const dx = e.clientX - sx;
+        const dy = e.clientY - sy;
         const dist = Math.hypot(dx, dy);
-        if (dist < MIN) return;
+        if (dist < MIN_SWIPE) return;
         const ang = Math.atan2(dy, dx);
         let diff = Math.abs(ang - TARGET);
         if (diff > Math.PI) diff = 2 * Math.PI - diff;
         if (dx < 0 && dy > 0 && diff <= TOL) {
           swiped = true;
           tracking = false;
-          window._tracingLockSkipClick = true;
           toggleTracingLock();
           e.preventDefault();
         }
       }
-      function onUp() { tracking = false; }
-      function onClick(e) {
-        if (window._tracingLockSkipClick) {
-          window._tracingLockSkipClick = false;
-          e.preventDefault();
-          e.stopPropagation();
-          return;
-        }
-        toggleTracingLock();
+      function onUp(e) {
+        if (pid != null && e.pointerId !== pid) return;
+        if (!tracking) { pid = null; return; }
+        tracking = false;
+        pid = null;
+        if (!swiped) toggleTracingLock();
       }
       function bind() {
         const btn = document.getElementById('tracingLockBtn');
         if (!btn || btn.dataset.swipeBound === '1') return;
         btn.dataset.swipeBound = '1';
-        btn.addEventListener('mousedown', onDown);
-        btn.addEventListener('touchstart', onDown, { passive: false });
-        window.addEventListener('mousemove', onMove, { passive: false });
-        window.addEventListener('touchmove', onMove, { passive: false });
-        window.addEventListener('mouseup', onUp);
-        window.addEventListener('touchend', onUp);
-        btn.addEventListener('click', onClick);
+        btn.addEventListener('pointerdown', onDown);
+        btn.addEventListener('pointermove', onMove);
+        btn.addEventListener('pointerup', onUp);
+        btn.addEventListener('pointercancel', onUp);
       }
       const origOpen = window.openTracingPage;
       window.openTracingPage = function() {
