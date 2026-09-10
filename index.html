@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="flashabc-build" content="314">
+<meta name="flashabc-build" content="317">
 
 <!-- Standalone Home Screen web app (iOS / iPadOS / Android) -->
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1555,7 +1555,7 @@
 
   <!-- ── Letter Tracing Page ── -->
   <div id="tracingPage" style="display:none;position:fixed;inset:0;z-index:50000;background:#fdf8f0;flex-direction:column;overflow:hidden;">
-    <div id="flashabcBuildBadge" style="position:absolute;right:8px;bottom:6px;z-index:60;font:600 10px/1 Arial,sans-serif;color:#b0a898;opacity:0.85;pointer-events:none;">build 314</div>
+    <div id="flashabcBuildBadge" style="position:absolute;right:8px;bottom:6px;z-index:60;font:600 10px/1 Arial,sans-serif;color:#b0a898;opacity:0.85;pointer-events:none;">build 317</div>
 
     <!-- Single combined header row: back | centred tabs | controls -->
     <div style="display:flex;align-items:flex-end;padding:8px 12px 0;background:#8b6f47;flex-shrink:0;">
@@ -3307,6 +3307,7 @@
     let tracingWord = '';
     let tracingCtx = null;
     let tracingDrawing = false;
+    let tracingDrawTouchId = null;
     let tracingLastX = 0, tracingLastY = 0;
     let tracingCaseMode = 0; // 0=lower, 1=UPPER, 2=Sentence
     let tracingSvgUpper = true; // SVG tab case: true=A–Z, false=a–z
@@ -3327,7 +3328,7 @@
       '#666666', // Gray
     ];
     // Build stamp — check Settings/About or window.FLASHABC_BUILD if Safari looks stale
-    const FLASHABC_BUILD = '314';
+    const FLASHABC_BUILD = '317';
     window.FLASHABC_BUILD = FLASHABC_BUILD;
     // Alphabet tab highlighter width (fixed)
     const TRACING_STROKE_WIDTH = 54;
@@ -3501,7 +3502,40 @@
         lockBtn.setAttribute('aria-label', tracingLocked ? 'Unlock' : 'Lock screen');
         lockBtn.setAttribute('aria-pressed', tracingLocked ? 'true' : 'false');
       }
+      if (tracingLocked) {
+        tracingDrawing = false;
+        tracingCurrentStroke = null;
+        tracingDrawTouchId = null;
+        const cursor = document.getElementById('tracingCursor');
+        if (cursor) cursor.style.display = 'none';
+      }
     }
+
+    const TRACING_LOCK_DEADZONE_PAD = 20;
+
+    function updateTracingLockDeadzone() {
+      const notebook = document.getElementById('tracingNotebook');
+      const lockBtn = document.getElementById('tracingLockBtn');
+      if (!notebook || !lockBtn) return;
+      const nr = notebook.getBoundingClientRect();
+      const br = lockBtn.getBoundingClientRect();
+      if (nr.width < 20 || br.width < 8) return;
+      const pad = TRACING_LOCK_DEADZONE_PAD;
+      window._tracingLockDeadzone = {
+        left: br.left - pad,
+        top: nr.top,
+        right: nr.right,
+        bottom: br.bottom + pad
+      };
+    }
+
+    function pointInTracingLockDeadzone(clientX, clientY) {
+      const z = window._tracingLockDeadzone;
+      if (!z) return false;
+      return clientX >= z.left && clientX <= z.right &&
+             clientY >= z.top && clientY <= z.bottom;
+    }
+    window.pointInTracingLockDeadzone = pointInTracingLockDeadzone;
 
     function positionTracingLockBtn() {
       const page = document.getElementById('tracingPage');
@@ -3518,19 +3552,45 @@
       lockBtn.style.left = 'auto';
       lockBtn.style.bottom = 'auto';
       lockBtn.classList.add('is-placed');
+      updateTracingLockDeadzone();
     }
     window.positionTracingLockBtn = positionTracingLockBtn;
 
     (function initTracingLockSwipe() {
-      // One pointer stream only (avoids touch + ghost-mouse double toggle).
-      // Tap on release. Swipe only if clearly down-left (~45°) and long enough.
+      // Mouse: pointer events on the button.
+      // Apple multi-touch: extra fingers are often delivered to the canvas, not
+      // the button — so we also watch document-capture touch events. A second
+      // finger that starts in the lock corner (deadzone) can tap or 45° swipe.
       const TARGET = Math.PI * 0.75;
       const TOL = 22 * Math.PI / 180;
       const MIN_SWIPE = 72;
       let sx = 0, sy = 0, tracking = false, swiped = false, pid = null;
+      let lockTouchId = null;
+
+      function inLockButton(clientX, clientY) {
+        const btn = document.getElementById('tracingLockBtn');
+        if (!btn) return false;
+        const r = btn.getBoundingClientRect();
+        return clientX >= r.left && clientX <= r.right &&
+               clientY >= r.top && clientY <= r.bottom;
+      }
+      function isSwipe(dx, dy) {
+        const dist = Math.hypot(dx, dy);
+        if (dist < MIN_SWIPE) return false;
+        if (!(dx < 0 && dy > 0)) return false;
+        const ang = Math.atan2(dy, dx);
+        let diff = Math.abs(ang - TARGET);
+        if (diff > Math.PI) diff = 2 * Math.PI - diff;
+        return diff <= TOL;
+      }
+      function tracingPageOpen() {
+        const page = document.getElementById('tracingPage');
+        return page && page.style.display !== 'none';
+      }
 
       function onDown(e) {
-        if (e.pointerType === 'mouse' && e.button !== 0) return;
+        if (e.pointerType !== 'mouse') return;
+        if (e.button !== 0) return;
         tracking = true;
         swiped = false;
         pid = e.pointerId;
@@ -3539,15 +3599,11 @@
         try { e.currentTarget.setPointerCapture(e.pointerId); } catch (err) {}
       }
       function onMove(e) {
+        if (e.pointerType !== 'mouse') return;
         if (!tracking || swiped || e.pointerId !== pid) return;
         const dx = e.clientX - sx;
         const dy = e.clientY - sy;
-        const dist = Math.hypot(dx, dy);
-        if (dist < MIN_SWIPE) return;
-        const ang = Math.atan2(dy, dx);
-        let diff = Math.abs(ang - TARGET);
-        if (diff > Math.PI) diff = 2 * Math.PI - diff;
-        if (dx < 0 && dy > 0 && diff <= TOL) {
+        if (isSwipe(dx, dy)) {
           swiped = true;
           tracking = false;
           toggleTracingLock();
@@ -3555,12 +3611,58 @@
         }
       }
       function onUp(e) {
+        if (e.pointerType && e.pointerType !== 'mouse') return;
         if (pid != null && e.pointerId !== pid) return;
         if (!tracking) { pid = null; return; }
         tracking = false;
         pid = null;
         if (!swiped) toggleTracingLock();
       }
+
+      function onDocTouchStart(e) {
+        if (!tracingPageOpen()) return;
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          const t = e.changedTouches[i];
+          const onBtn = inLockButton(t.clientX, t.clientY);
+          const inZone = typeof pointInTracingLockDeadzone === 'function' &&
+            pointInTracingLockDeadzone(t.clientX, t.clientY);
+          const extraFinger = tracingDrawing || tracingDrawTouchId != null || e.touches.length > 1;
+          if (onBtn || (extraFinger && inZone)) {
+            if (lockTouchId != null) continue;
+            lockTouchId = t.identifier;
+            sx = t.clientX;
+            sy = t.clientY;
+            swiped = false;
+          }
+        }
+      }
+      function onDocTouchMove(e) {
+        if (lockTouchId == null || swiped) return;
+        let t = null;
+        for (let i = 0; i < e.touches.length; i++) {
+          if (e.touches[i].identifier === lockTouchId) { t = e.touches[i]; break; }
+        }
+        if (!t) return;
+        if (isSwipe(t.clientX - sx, t.clientY - sy)) {
+          swiped = true;
+          lockTouchId = null;
+          toggleTracingLock();
+          e.preventDefault();
+        }
+      }
+      function onDocTouchEnd(e) {
+        if (lockTouchId == null) return;
+        let ended = false;
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          if (e.changedTouches[i].identifier === lockTouchId) { ended = true; break; }
+        }
+        if (!ended) return;
+        const wasSwipe = swiped;
+        lockTouchId = null;
+        swiped = false;
+        if (!wasSwipe) toggleTracingLock();
+      }
+
       function bind() {
         const btn = document.getElementById('tracingLockBtn');
         if (!btn || btn.dataset.swipeBound === '1') return;
@@ -3569,6 +3671,10 @@
         btn.addEventListener('pointermove', onMove);
         btn.addEventListener('pointerup', onUp);
         btn.addEventListener('pointercancel', onUp);
+        window.addEventListener('touchstart', onDocTouchStart, { capture: true, passive: true });
+        window.addEventListener('touchmove', onDocTouchMove, { capture: true, passive: false });
+        window.addEventListener('touchend', onDocTouchEnd, { capture: true, passive: true });
+        window.addEventListener('touchcancel', onDocTouchEnd, { capture: true, passive: true });
       }
       const origOpen = window.openTracingPage;
       window.openTracingPage = function() {
@@ -4070,10 +4176,19 @@
       tracingCtx.scale(dpr, dpr);
       drawTracingPage();
 
-      function getPos(e) {
+      function getPosFromClient(clientX, clientY) {
         const rect = c.getBoundingClientRect();
-        const src  = e.touches ? e.touches[0] : e;
-        return { x: src.clientX - rect.left, y: src.clientY - rect.top };
+        return { x: clientX - rect.left, y: clientY - rect.top };
+      }
+      function getDrawTouch(e) {
+        if (!e.touches) return e;
+        if (tracingDrawTouchId != null) {
+          for (let i = 0; i < e.touches.length; i++) {
+            if (e.touches[i].identifier === tracingDrawTouchId) return e.touches[i];
+          }
+          return null;
+        }
+        return e.touches[0] || (e.changedTouches && e.changedTouches[0]) || null;
       }
 
       function showCursor(x, y, isTouch) {
@@ -4099,32 +4214,59 @@
 
       function startDraw(e) {
         e.preventDefault();
+        if (e.changedTouches && e.changedTouches.length) {
+          if (tracingDrawing || tracingDrawTouchId != null) return;
+          const t = e.changedTouches[0];
+          if (typeof pointInTracingLockDeadzone === 'function' &&
+              pointInTracingLockDeadzone(t.clientX, t.clientY)) {
+            return;
+          }
+          tracingDrawTouchId = t.identifier;
+          tracingDrawing = true;
+          const p = getPosFromClient(t.clientX, t.clientY);
+          tracingLastX = p.x; tracingLastY = p.y;
+          pickColorForPosition(p.x);
+          if (tracingToolMode === 'erase') eraseAtPoint(p.x, p.y);
+          else beginTracingStroke(p.x, p.y);
+          showCursor(p.x, p.y, true);
+          return;
+        }
+        const src = e;
+        if (src && typeof pointInTracingLockDeadzone === 'function' &&
+            pointInTracingLockDeadzone(src.clientX, src.clientY)) {
+          tracingDrawing = false;
+          return;
+        }
         tracingDrawing = true;
-        const p = getPos(e);
+        const p = getPosFromClient(src.clientX, src.clientY);
         tracingLastX = p.x; tracingLastY = p.y;
         pickColorForPosition(p.x);
-        if (tracingToolMode === 'erase') {
-          eraseAtPoint(p.x, p.y);
-        } else {
-          beginTracingStroke(p.x, p.y);
-        }
-        showCursor(p.x, p.y, !!e.touches);
+        if (tracingToolMode === 'erase') eraseAtPoint(p.x, p.y);
+        else beginTracingStroke(p.x, p.y);
+        showCursor(p.x, p.y, false);
       }
 
       function moveDraw(e) {
         e.preventDefault();
         if (!tracingDrawing) return;
-        const p = getPos(e);
-        if (tracingToolMode === 'erase') {
-          eraseAtPoint(p.x, p.y);
-        } else {
-          extendTracingStroke(p.x, p.y);
-        }
+        const src = getDrawTouch(e);
+        if (!src) return;
+        const p = getPosFromClient(src.clientX, src.clientY);
+        if (tracingToolMode === 'erase') eraseAtPoint(p.x, p.y);
+        else extendTracingStroke(p.x, p.y);
         tracingLastX = p.x; tracingLastY = p.y;
         showCursor(p.x, p.y, !!e.touches);
       }
 
       function endDraw(e) {
+        if (e.changedTouches && tracingDrawTouchId != null) {
+          let ours = false;
+          for (let i = 0; i < e.changedTouches.length; i++) {
+            if (e.changedTouches[i].identifier === tracingDrawTouchId) { ours = true; break; }
+          }
+          if (!ours) return;
+        }
+        tracingDrawTouchId = null;
         tracingDrawing = false;
         tracingCurrentStroke = null;
         hideCursor();
