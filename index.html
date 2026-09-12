@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="flashabc-build" content="317">
+<meta name="flashabc-build" content="328">
 
 <!-- Standalone Home Screen web app (iOS / iPadOS / Android) -->
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1314,7 +1314,7 @@
       justify-content: center;
       -webkit-tap-highlight-color: transparent;
       outline: none;
-      touch-action: manipulation;
+      touch-action: none;
       transition: transform 0.08s ease;
     }
     #tracingClearBtn.is-visible { display: flex; }
@@ -1373,6 +1373,66 @@
       touch-action: none;
     }
     #tracingPage.is-locked #tracingLockOverlay { display: block; }
+
+    #tracingNotebook.bg-dark {
+      background: #c9b89f;
+    }
+    #tracingNotebook.bg-dark > button svg {
+      stroke: #6b5340;
+    }
+    #tracingBgBtn {
+      background: transparent;
+      border: 2px solid #8b6f47;
+      color: #8b6f47;
+      padding: 5px 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #tracingPage.bg-dark #tracingBgBtn {
+      background: #8b6f47;
+      color: #f5ece0;
+    }
+    #tracingPage.bg-dark #tracingBgBtn svg { stroke: #f5ece0; }
+
+    #tracingTtsToggle {
+      display: none;
+      background: transparent;
+      border: 2px solid #8b6f47;
+      color: #8b6f47;
+      padding: 5px 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      height: 34px;
+      align-items: center;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #tracingTtsToggle.is-on {
+      background: #8b6f47;
+    }
+    #tracingTtsToggle.is-on svg { stroke: #f5ece0; }
+    #tracingSpeakBtn {
+      position: absolute;
+      z-index: 35;
+      width: 68px;
+      height: 68px;
+      padding: 0;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+      outline: none;
+    }
+    #tracingSpeakBtn svg { filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2)); }
+    #tracingPage.bg-dark #tracingSpeakBtn svg { stroke: #5a4030; }
 
     /* Stacked pencil/eraser: active 90px, same 16px corner inset as Clear. */
     #tracingToolToggle {
@@ -1555,7 +1615,7 @@
 
   <!-- ── Letter Tracing Page ── -->
   <div id="tracingPage" style="display:none;position:fixed;inset:0;z-index:50000;background:#fdf8f0;flex-direction:column;overflow:hidden;">
-    <div id="flashabcBuildBadge" style="position:absolute;right:8px;bottom:6px;z-index:60;font:600 10px/1 Arial,sans-serif;color:#b0a898;opacity:0.85;pointer-events:none;">build 317</div>
+    <div id="flashabcBuildBadge" style="position:absolute;right:8px;bottom:6px;z-index:60;font:600 10px/1 Arial,sans-serif;color:#b0a898;opacity:0.85;pointer-events:none;">build 328</div>
 
     <!-- Single combined header row: back | centred tabs | controls -->
     <div style="display:flex;align-items:flex-end;padding:8px 12px 0;background:#8b6f47;flex-shrink:0;">
@@ -1625,6 +1685,15 @@
       </button>
 
       <button id="tracingCaseBtn" onclick="cycleTracingCase()" style="background:transparent;border:2px solid #8b6f47;color:#8b6f47;font-size:0.78rem;font-weight:700;padding:5px 11px;border-radius:8px;cursor:pointer;min-width:34px;height:34px;">aa</button>
+      <button id="tracingTtsToggle" type="button" onclick="toggleTracingTts()" title="Text to speech" aria-label="Text to speech" aria-pressed="false">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8b6f47" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="8.2" y="1.6" width="7.6" height="13" rx="3.8"/>
+          <path d="M10.35 4.35v2.8"/>
+          <path d="M5.2 11.1v.7a6.8 6.8 0 0 0 13.6 0v-.7"/>
+          <line x1="12" y1="18.6" x2="12" y2="21.15"/>
+          <line x1="8.1" y1="21.5" x2="15.9" y2="21.5"/>
+        </svg>
+      </button>
 
       <!-- Shuffle button for DIY (beside aa, hidden in Alphabet) -->
       <button id="tracingShuffleDIY" onclick="toggleTracingShuffle()" title="Shuffle" style="background:transparent;border:2px solid #8b6f47;color:#8b6f47;padding:5px 8px;border-radius:8px;cursor:pointer;height:34px;display:flex;align-items:center;justify-content:center;">
@@ -1644,11 +1713,26 @@
 
       <!-- Spacer -->
       <div style="flex:1;"></div>
+      <button id="tracingBgBtn" type="button" onclick="toggleTracingBg()" title="Darker background for higher contrast" aria-label="Toggle tracing background">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="#8b6f47" stroke-width="2" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" fill="none"/>
+          <path d="M12 3a9 9 0 0 0 0 18z" stroke="none"/>
+        </svg>
+      </button>
     </div>
 
     <!-- Notebook lines area -->
     <div id="tracingNotebook" style="flex:1;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;padding:10px 6px;">
       <canvas id="tracingCanvas" style="display:block;touch-action:none;background:transparent;"></canvas>
+      <button id="tracingSpeakBtn" type="button" onclick="speakTracingLetter()" title="Hear letter name and sound" aria-label="Hear letter name and sound">
+        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#8b6f47" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="8.2" y="1.6" width="7.6" height="13" rx="3.8"/>
+          <path d="M10.35 4.35v2.8"/>
+          <path d="M5.2 11.1v.7a6.8 6.8 0 0 0 13.6 0v-.7"/>
+          <line x1="12" y1="18.6" x2="12" y2="21.15"/>
+          <line x1="8.1" y1="21.5" x2="15.9" y2="21.5"/>
+        </svg>
+      </button>
 
       <!-- Full-height invisible left tap zone + floating arrow -->
       <button onclick="tracingNavFlash(-1)" aria-label="Previous" style="
@@ -1765,7 +1849,7 @@
         <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
       </svg>
     </button>
-    <button id="tracingClearBtn" type="button" onclick="clearTracing()" title="Clear all strokes" aria-label="Clear all strokes">
+    <button id="tracingClearBtn" type="button" title="Clear all strokes" aria-label="Clear all strokes">
       <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#f44336" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <polyline points="3 6 5 6 21 6"></polyline>
         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -3308,6 +3392,7 @@
     let tracingCtx = null;
     let tracingDrawing = false;
     let tracingDrawTouchId = null;
+    let tracingIgnoreTouchId = null;
     let tracingLastX = 0, tracingLastY = 0;
     let tracingCaseMode = 0; // 0=lower, 1=UPPER, 2=Sentence
     let tracingSvgUpper = true; // SVG tab case: true=A–Z, false=a–z
@@ -3328,7 +3413,7 @@
       '#666666', // Gray
     ];
     // Build stamp — check Settings/About or window.FLASHABC_BUILD if Safari looks stale
-    const FLASHABC_BUILD = '317';
+    const FLASHABC_BUILD = '328';
     window.FLASHABC_BUILD = FLASHABC_BUILD;
     // Alphabet tab highlighter width (fixed)
     const TRACING_STROKE_WIDTH = 54;
@@ -3464,17 +3549,143 @@
       return word.toLowerCase(); // mode 0: always display lowercase
     }
 
+    let tracingBgMode = 'light';
+    try {
+      const savedBg = localStorage.getItem('flashabcTracingBg');
+      if (savedBg === 'dark' || savedBg === 'light') tracingBgMode = savedBg;
+    } catch (e) {}
+
+    function applyTracingBgTheme() {
+      const svgContrast = tracingBgMode === 'dark' && tracingMode === 'svg';
+      const page = document.getElementById('tracingPage');
+      const nb = document.getElementById('tracingNotebook');
+      const btn = document.getElementById('tracingBgBtn');
+      if (page) page.classList.toggle('bg-dark', svgContrast);
+      if (nb) nb.classList.toggle('bg-dark', svgContrast);
+      if (btn) {
+        btn.style.display = tracingMode === 'svg' ? 'flex' : 'none';
+        btn.title = tracingBgMode === 'dark'
+          ? 'Lighter SVG background'
+          : 'Darker SVG background for higher contrast';
+        btn.setAttribute('aria-pressed', tracingBgMode === 'dark' ? 'true' : 'false');
+      }
+      if (typeof positionTracingSpeakBtn === 'function') positionTracingSpeakBtn();
+    }
+
+    let tracingTtsOn = false;
+    let tracingSpeakGen = 0;
+    const TRACING_LETTER_NAMES = {
+      a: 'ay', b: 'bee', c: 'see', d: 'dee', e: 'ee', f: 'eff',
+      g: 'jee', h: 'aitch', i: 'eye', j: 'jay', k: 'kay', l: 'ell',
+      m: 'em', n: 'en', o: 'oh', p: 'pee', q: 'cue', r: 'ar',
+      s: 'ess', t: 'tee', u: 'you', v: 'vee', w: 'double you', x: 'ex',
+      y: 'why', z: 'zee'
+    };
+    const TRACING_SHORT_SOUNDS = {
+      a: 'ah', b: 'buh', c: 'kuh', d: 'duh', e: 'eh', f: 'fff',
+      g: 'guh', h: 'huh', i: 'ih', j: 'juh', k: 'kuh', l: 'lll',
+      m: 'mmm', n: 'nnn', o: 'aw', p: 'puh', q: 'kwuh', r: 'rrr',
+      s: 'sss', t: 'tuh', u: 'uh', v: 'vvv', w: 'wuh', x: 'ks',
+      y: 'yuh', z: 'zzz'
+    };
+
+    function cancelTracingSpeech() {
+      tracingSpeakGen++;
+      if (window.speechSynthesis) window.speechSynthesis.cancel();
+    }
+
+    function positionTracingSpeakBtn() {
+      const btn = document.getElementById('tracingSpeakBtn');
+      const notebook = document.getElementById('tracingNotebook');
+      const canvas = document.getElementById('tracingCanvas');
+      if (!btn || !notebook || !canvas) return;
+      const show = tracingMode === 'svg' && tracingTtsOn;
+      btn.style.display = show ? 'flex' : 'none';
+      if (!show) return;
+      const nb = notebook.getBoundingClientRect();
+      const cr = canvas.getBoundingClientRect();
+      btn.style.left = Math.max(6, cr.left - nb.left + 8) + 'px';
+      btn.style.top = Math.max(4, cr.top - nb.top + 6) + 'px';
+    }
+
+    function toggleTracingTts() {
+      tracingTtsOn = !tracingTtsOn;
+      const toggle = document.getElementById('tracingTtsToggle');
+      if (toggle) {
+        toggle.classList.toggle('is-on', tracingTtsOn);
+        toggle.setAttribute('aria-pressed', tracingTtsOn ? 'true' : 'false');
+        toggle.title = tracingTtsOn ? 'Hide speak button' : 'Text to speech';
+      }
+      if (!tracingTtsOn) cancelTracingSpeech();
+      else if (window.speechSynthesis) window.speechSynthesis.getVoices();
+      positionTracingSpeakBtn();
+      if (tracingMode === 'svg') drawTracingPageKeepInk();
+    }
+
+    function drawTracingPageKeepInk() {
+      const keep = tracingStrokes.slice();
+      const wasReplay = tracingReplayMode;
+      tracingReplayMode = true;
+      drawTracingPage();
+      tracingReplayMode = wasReplay;
+      tracingStrokes = keep;
+      if (typeof presentTracingInk === 'function') presentTracingInk();
+    }
+
+    function speakTracingLetter() {
+      if (!tracingTtsOn || tracingMode !== 'svg') return;
+      if (!('speechSynthesis' in window)) return;
+      const ch = (typeof svgLetterKey === 'function' ? svgLetterKey(tracingWord || 'a') : (tracingWord || 'a')).toString().charAt(0).toLowerCase();
+      const name = TRACING_LETTER_NAMES[ch] || ch;
+      const sound = TRACING_SHORT_SOUNDS[ch] || ch;
+      const gen = ++tracingSpeakGen;
+      window.speechSynthesis.cancel();
+      const u1 = new SpeechSynthesisUtterance(name);
+      u1.rate = 0.9;
+      u1.pitch = 1;
+      u1.lang = 'en-US';
+      const u2 = new SpeechSynthesisUtterance(sound);
+      u2.rate = 0.75;
+      u2.pitch = 1;
+      u2.lang = 'en-US';
+      u1.onend = function() {
+        if (gen !== tracingSpeakGen) return;
+        setTimeout(function() {
+          if (gen !== tracingSpeakGen) return;
+          window.speechSynthesis.speak(u2);
+        }, 1200);
+      };
+      setTimeout(function() {
+        if (gen !== tracingSpeakGen) return;
+        window.speechSynthesis.speak(u1);
+      }, 60);
+    }
+
+    function toggleTracingBg() {
+      tracingBgMode = tracingBgMode === 'dark' ? 'light' : 'dark';
+      try { localStorage.setItem('flashabcTracingBg', tracingBgMode); } catch (e) {}
+      applyTracingBgTheme();
+      const keep = tracingStrokes.slice();
+      const wasReplay = tracingReplayMode;
+      tracingReplayMode = true;
+      drawTracingPage();
+      tracingReplayMode = wasReplay;
+      tracingStrokes = keep;
+      if (typeof presentTracingInk === 'function') presentTracingInk();
+    }
+
     function openTracingPage() {
       const page = document.getElementById('tracingPage');
       page.style.display = 'flex';
       const input = document.getElementById('tracingWordInput');
       input.value = tracingWord || '';
-      
+      applyTracingBgTheme();
       setTimeout(() => { setupTracingCanvas(); }, 50);
     }
 
     function closeTracingPage() {
       if (tracingLocked) toggleTracingLock(false);
+      if (typeof cancelTracingSpeech === 'function') cancelTracingSpeech();
       document.getElementById('tracingPage').style.display = 'none';
       // Leaving tracing (incl. SVG tab) → restore landscape suggestion
       window._svgPortraitOk = false;
@@ -3511,7 +3722,17 @@
       }
     }
 
+    function resetTracingPointerState() {
+      tracingDrawing = false;
+      tracingDrawTouchId = null;
+      tracingCurrentStroke = null;
+      const cursor = document.getElementById('tracingCursor');
+      if (cursor) cursor.style.display = 'none';
+    }
+    window.resetTracingPointerState = resetTracingPointerState;
+
     const TRACING_LOCK_DEADZONE_PAD = 20;
+    const TRACING_CLEAR_DEADZONE_PAD = 20;
 
     function updateTracingLockDeadzone() {
       const notebook = document.getElementById('tracingNotebook');
@@ -3537,6 +3758,39 @@
     }
     window.pointInTracingLockDeadzone = pointInTracingLockDeadzone;
 
+    function updateTracingClearDeadzone() {
+      const notebook = document.getElementById('tracingNotebook');
+      if (!notebook) return;
+      const nr = notebook.getBoundingClientRect();
+      if (nr.width < 20 || nr.height < 20) return;
+      const pad = TRACING_CLEAR_DEADZONE_PAD;
+      const inset = 16;
+      const btnW = 68;
+      const btnH = 68;
+      const clearBtn = document.getElementById('tracingClearBtn');
+      const br = clearBtn ? clearBtn.getBoundingClientRect() : null;
+      const useBtn = br && br.width >= 8 && br.height >= 8;
+      window._tracingClearDeadzone = {
+        left: (useBtn ? br.left : (nr.right - inset - btnW)) - pad,
+        top: (useBtn ? br.top : (nr.bottom - inset - btnH)) - pad,
+        right: nr.right,
+        bottom: nr.bottom
+      };
+    }
+
+    function pointInTracingClearDeadzone(clientX, clientY) {
+      const z = window._tracingClearDeadzone;
+      if (!z) return false;
+      return clientX >= z.left && clientX <= z.right &&
+             clientY >= z.top && clientY <= z.bottom;
+    }
+    window.pointInTracingClearDeadzone = pointInTracingClearDeadzone;
+
+    function pointInTracingControlDeadzone(clientX, clientY) {
+      return pointInTracingLockDeadzone(clientX, clientY) ||
+             pointInTracingClearDeadzone(clientX, clientY);
+    }
+
     function positionTracingLockBtn() {
       const page = document.getElementById('tracingPage');
       const notebook = document.getElementById('tracingNotebook');
@@ -3553,6 +3807,7 @@
       lockBtn.style.bottom = 'auto';
       lockBtn.classList.add('is-placed');
       updateTracingLockDeadzone();
+      updateTracingClearDeadzone();
     }
     window.positionTracingLockBtn = positionTracingLockBtn;
 
@@ -3682,6 +3937,8 @@
         setTimeout(bind, 90);
         setTimeout(positionTracingLockBtn, 80);
         setTimeout(positionTracingLockBtn, 200);
+        setTimeout(updateTracingClearDeadzone, 80);
+        setTimeout(updateTracingClearDeadzone, 200);
       };
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', bind);
@@ -3699,16 +3956,83 @@
         if (hasInk) clearBtn.classList.add('is-visible');
         else clearBtn.classList.remove('is-visible');
       }
+      updateTracingClearDeadzone();
     }
 
+    let tracingClearAt = 0;
     function clearTracing() {
+      const now = Date.now();
+      if (now - tracingClearAt < 400) return;
+      tracingClearAt = now;
       tracingStrokes  = [];
       tracingCurrentStroke = null;
+      tracingDrawing = false;
+      tracingDrawTouchId = null;
       randomTracingColor();
       tracingToolMode = 'draw';
       setTracingTool('draw');
+      const cursor = document.getElementById('tracingCursor');
+      if (cursor) cursor.style.display = 'none';
       drawTracingPage();
     }
+
+    (function initTracingClearPress() {
+      // Press only (no swipe). Mouse uses pointerdown on the button.
+      // Apple: extra finger in the trash corner is often sent to the canvas,
+      // so document-capture touchstart fires clear while the student keeps tracing.
+      function tracingPageOpen() {
+        const page = document.getElementById('tracingPage');
+        return page && page.style.display !== 'none';
+      }
+      function inClearButton(clientX, clientY) {
+        const btn = document.getElementById('tracingClearBtn');
+        if (!btn || !btn.classList.contains('is-visible')) return false;
+        const r = btn.getBoundingClientRect();
+        if (r.width < 8 || r.height < 8) return false;
+        return clientX >= r.left && clientX <= r.right &&
+               clientY >= r.top && clientY <= r.bottom;
+      }
+      function onPointerDown(e) {
+        if (e.pointerType !== 'mouse') return;
+        if (e.button !== 0) return;
+        clearTracing();
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      function onDocTouchStart(e) {
+        if (!tracingPageOpen()) return;
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          const t = e.changedTouches[i];
+          if (typeof pointInTracingLockDeadzone === 'function' &&
+              pointInTracingLockDeadzone(t.clientX, t.clientY)) continue;
+          const onBtn = inClearButton(t.clientX, t.clientY);
+          const inZone = typeof pointInTracingClearDeadzone === 'function' &&
+            pointInTracingClearDeadzone(t.clientX, t.clientY);
+          if (onBtn || inZone) {
+            tracingIgnoreTouchId = t.identifier;
+            clearTracing();
+          }
+        }
+      }
+      function bind() {
+        const btn = document.getElementById('tracingClearBtn');
+        if (!btn || btn.dataset.clearBound === '1') return;
+        btn.dataset.clearBound = '1';
+        btn.addEventListener('pointerdown', onPointerDown);
+        window.addEventListener('touchstart', onDocTouchStart, { capture: true, passive: true });
+      }
+      const origOpen = window.openTracingPage;
+      window.openTracingPage = function() {
+        if (origOpen) origOpen.apply(this, arguments);
+        setTimeout(bind, 100);
+        setTimeout(updateTracingClearDeadzone, 120);
+      };
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', bind);
+      } else {
+        setTimeout(bind, 50);
+      }
+    })();
 
     function undoTracing() {
       if (!tracingStrokes.length) return;
@@ -3732,6 +4056,7 @@
       const canvas = document.getElementById('tracingCanvas');
       const notebook = document.getElementById('tracingNotebook');
       const rect = notebook.getBoundingClientRect();
+      if (rect.width < 40 || rect.height < 40) return;
       const dpr = window.devicePixelRatio || 1;
 
       const w = rect.width - 12;
@@ -3752,6 +4077,10 @@
       if (typeof window.positionTracingLockBtn === 'function') {
         window.positionTracingLockBtn();
         setTimeout(window.positionTracingLockBtn, 40);
+      }
+      if (typeof positionTracingSpeakBtn === 'function') {
+        positionTracingSpeakBtn();
+        setTimeout(positionTracingSpeakBtn, 40);
       }
       if (typeof window.syncTracingToolToggleViewport === 'function') {
         setTimeout(window.syncTracingToolToggleViewport, 30);
@@ -3785,6 +4114,27 @@
         l2: padTop + scaledUsable * 0.42,
         l3: padTop + scaledUsable * 0.75,
         l4: padTop + scaledUsable * 1.0
+      };
+    }
+
+    const TRACING_GUIDE_FONT = "'Comic Sans MS', 'Chalkboard SE', cursive";
+
+    function tracingXHeightSample(ch) {
+      const c = (ch || 'x').toLowerCase();
+      return ('acemnorsuvwxz'.indexOf(c) >= 0) ? c : 'x';
+    }
+
+    function measureTracingFontMetrics(ctx, fontSize, capCh, xCh) {
+      capCh = capCh || 'H';
+      xCh = xCh || 'x';
+      ctx.font = '400 ' + fontSize + 'px ' + TRACING_GUIDE_FONT;
+      const capM = ctx.measureText(capCh);
+      const xM = ctx.measureText(xCh);
+      const cap = capM.actualBoundingBoxAscent;
+      const xh = xM.actualBoundingBoxAscent;
+      return {
+        capHeight: (cap > 1) ? cap : fontSize * 0.72,
+        xHeight: (xh > 1) ? xh : fontSize * 0.54
       };
     }
 
@@ -3945,6 +4295,110 @@
       };
     }
 
+    const TRACING_CONTRAST_RGB = [201, 184, 159];
+    const tracingSvgContrastCache = {};
+
+    function prepareSvgContrastGuide(img, letter) {
+      if (tracingSvgContrastCache[letter]) return tracingSvgContrastCache[letter];
+      const w = Math.max(1, img.naturalWidth || img.width || 580);
+      const h = Math.max(1, img.naturalHeight || img.height || 620);
+      const cnv = document.createElement('canvas');
+      cnv.width = w;
+      cnv.height = h;
+      const x = cnv.getContext('2d');
+      x.drawImage(img, 0, 0, w, h);
+      const imageData = x.getImageData(0, 0, w, h);
+      const px = imageData.data;
+      const n = w * h;
+      function isWhite(i) {
+        const o = i * 4;
+        return px[o + 3] > 200 && px[o] > 225 && px[o + 1] > 225 && px[o + 2] > 225;
+      }
+      const seen = new Uint8Array(n);
+      const q = [];
+      function tryPush(i) {
+        if (i < 0 || i >= n || seen[i] || !isWhite(i)) return;
+        seen[i] = 2;
+        q.push(i);
+      }
+      for (let xi = 0; xi < w; xi++) { tryPush(xi); tryPush((h - 1) * w + xi); }
+      for (let yi = 0; yi < h; yi++) { tryPush(yi * w); tryPush(yi * w + w - 1); }
+      for (let qi = 0; qi < q.length; qi++) {
+        const i = q[qi];
+        const x0 = i % w;
+        if (x0 > 0) tryPush(i - 1);
+        if (x0 + 1 < w) tryPush(i + 1);
+        if (i >= w) tryPush(i - w);
+        if (i + w < n) tryPush(i + w);
+      }
+      const cr = TRACING_CONTRAST_RGB[0], cg = TRACING_CONTRAST_RGB[1], cb = TRACING_CONTRAST_RGB[2];
+      for (let i = 0; i < n; i++) {
+        if (seen[i] === 2) {
+          const o = i * 4;
+          px[o] = cr; px[o + 1] = cg; px[o + 2] = cb; px[o + 3] = 255;
+        }
+      }
+      const lab = new Int32Array(n);
+      for (let i = 0; i < n; i++) lab[i] = -1;
+      const comps = [];
+      let cid = 0;
+      for (let i = 0; i < n; i++) {
+        if (seen[i] === 2 || !isWhite(i) || lab[i] >= 0) continue;
+        const qq = [i];
+        lab[i] = cid;
+        let sz = 0, minX = i % w, maxX = minX, minY = (i / w) | 0, maxY = minY;
+        for (let qj = 0; qj < qq.length; qj++) {
+          const j = qq[qj];
+          sz++;
+          const x0 = j % w, y0 = (j / w) | 0;
+          if (x0 < minX) minX = x0;
+          if (x0 > maxX) maxX = x0;
+          if (y0 < minY) minY = y0;
+          if (y0 > maxY) maxY = y0;
+          const cand = [];
+          if (x0 > 0) cand.push(j - 1);
+          if (x0 + 1 < w) cand.push(j + 1);
+          if (y0 > 0) cand.push(j - w);
+          if (y0 + 1 < h) cand.push(j + w);
+          for (let k = 0; k < cand.length; k++) {
+            const nb = cand[k];
+            if (lab[nb] >= 0 || seen[nb] === 2 || !isWhite(nb)) continue;
+            lab[nb] = cid;
+            qq.push(nb);
+          }
+        }
+        comps.push({ id: cid, size: sz, minX: minX, minY: minY, maxX: maxX, maxY: maxY });
+        cid++;
+      }
+      if (comps.length > 1) {
+        let main = comps[0];
+        for (let k = 1; k < comps.length; k++) {
+          if (comps[k].size > main.size) main = comps[k];
+        }
+        const holeIds = {};
+        const minHole = Math.max(1800, main.size * 0.02);
+        for (let k = 0; k < comps.length; k++) {
+          const c0 = comps[k];
+          if (c0.id === main.id) continue;
+          if (c0.size < minHole) continue;
+          const cx = (c0.minX + c0.maxX) / 2;
+          const cy = (c0.minY + c0.maxY) / 2;
+          if (cx >= main.minX && cx <= main.maxX && cy >= main.minY && cy <= main.maxY) {
+            holeIds[c0.id] = 1;
+          }
+        }
+        for (let i = 0; i < n; i++) {
+          if (holeIds[lab[i]]) {
+            const o = i * 4;
+            px[o] = cr; px[o + 1] = cg; px[o + 2] = cb; px[o + 3] = 255;
+          }
+        }
+      }
+      x.putImageData(imageData, 0, 0);
+      tracingSvgContrastCache[letter] = cnv;
+      return cnv;
+    }
+
     function drawSvgGuideOnCanvas(ctx, W, H) {
       const letter = svgLetterKey(tracingWord || 'a');
       const img = tracingSvgCache[letter];
@@ -3961,7 +4415,8 @@
         const ih = img.naturalHeight || img.height || 620;
         const r = getSvgGuideRect(W, H, Math.max(iw, 1), Math.max(ih, 1), letter);
         try {
-          ctx.drawImage(img, r.x, r.y, r.w, r.h);
+          const src = (tracingBgMode === 'dark') ? prepareSvgContrastGuide(img, letter) : img;
+          ctx.drawImage(src, r.x, r.y, r.w, r.h);
         } catch (e) {
           console.warn('drawImage SVG failed', e);
         }
@@ -4016,9 +4471,15 @@
         setTracingTool('draw');
       }
 
-      // DIY/Alphabet: white paper card. SVG mode: no card/border — letter only on cream notebook.
+      const svgContrast = tracingMode === 'svg' && tracingBgMode === 'dark';
+      const contrastBg = '#c9b89f';
       if (tracingMode === 'svg') {
-        ctx.clearRect(0, 0, W, H);
+        if (svgContrast) {
+          ctx.fillStyle = contrastBg;
+          ctx.fillRect(0, 0, W, H);
+        } else {
+          ctx.clearRect(0, 0, W, H);
+        }
       } else {
         ctx.fillStyle = '#ffffff';
         roundRect(ctx, 0, 0, W, H, 10);
@@ -4036,11 +4497,12 @@
         const label = `${curIdx + 1} / ${listForCount.length}`;
         ctx.save();
         ctx.font         = `600 13px Arial, sans-serif`;
-        ctx.fillStyle    = '#b0a898';
+        ctx.fillStyle    = svgContrast ? '#6e655c' : '#b0a898';
         ctx.textBaseline = 'top';
         if (tracingMode === 'svg') {
           ctx.textAlign = 'left';
-          ctx.fillText(label, 14, 12);
+          const indexX = tracingTtsOn ? 88 : 14;
+          ctx.fillText(label, indexX, 12);
         } else {
           ctx.textAlign = 'center';
           ctx.fillText(label, W / 2, 7);
@@ -4062,10 +4524,44 @@
         letterCountForScale = tracingWord ? Math.max(1, tracingWord.length) : 1;
       }
 
-      const { l1, l2, l3, l4 } = getTracingLines(H, letterCountForScale);
+      const lines = getTracingLines(H, letterCountForScale);
+      let l1 = lines.l1, l2 = lines.l2, l3 = lines.l3, l4 = lines.l4;
       const marginL = 48;
+      const totalW = W - marginL - 48;
+      let fontSize = (l3 - l1) / 0.72;
 
-      // Four lines
+      if (tracingWord) {
+        let capSample = 'H';
+        let xSample = 'x';
+        if (tracingMode === 'alphabet') {
+          const ch = tracingWord.toLowerCase();
+          capSample = ch.toUpperCase();
+          xSample = tracingXHeightSample(ch);
+        }
+        const capZone = l3 - l1;
+        let metrics = measureTracingFontMetrics(ctx, fontSize, capSample, xSample);
+        if (metrics.capHeight > 1) {
+          fontSize = fontSize * (capZone / metrics.capHeight);
+        }
+        if (tracingMode !== 'alphabet') {
+          const displayWord = applyTracingCase(tracingWord);
+          const letters = displayWord.split('');
+          ctx.font = '400 ' + fontSize + 'px ' + TRACING_GUIDE_FONT;
+          const pad = fontSize * 0.03;
+          const blockW = letters.reduce(function(sum, ch) {
+            return sum + ctx.measureText(ch).width + pad;
+          }, 0);
+          if (blockW > totalW) {
+            fontSize = fontSize * (totalW / blockW) * 0.97;
+          }
+        }
+        metrics = measureTracingFontMetrics(ctx, fontSize, capSample, xSample);
+        l2 = l3 - metrics.xHeight;
+        if (l2 <= l1 + 4) l2 = l1 + (l3 - l1) * 0.42;
+        if (l2 >= l3 - 4) l2 = l3 - 4;
+      }
+
+      // Four lines (l2 = measured x-height of the live guide font)
       drawRule(ctx, marginL, W - 48, l1, '#c4c8d8', false, 1);    // ascender — solid
       drawRule(ctx, marginL, W - 48, l2, '#c4c8d8', true,  1);    // midline  — dashed
       drawRule(ctx, marginL, W - 48, l3, '#9098b8', false, 1.5);  // baseline — solid darker
@@ -4082,27 +4578,7 @@
 
       if (!tracingWord) return;
 
-      // Comic Sans cap-height ≈ 72% of em-size
-      // Size so cap-height exactly spans l1→l3
-      const capZone = l3 - l1;
-      let fontSize  = capZone / 0.72;
-
-      const totalW = W - marginL - 48;
-
-      // For manual mode, check if the displayed (case-applied) word is too wide
-      // and shrink fontSize until it fits — handles wide uppercase like "MMMMMM"
-      if (tracingMode !== 'alphabet' && tracingWord) {
-        const displayWord = applyTracingCase(tracingWord);
-        const letters = displayWord.split('');
-        ctx.font = `400 ${fontSize}px 'Comic Sans MS', 'Chalkboard SE', cursive`;
-        const pad = fontSize * 0.03;
-        const blockW = letters.reduce((sum, ch) => sum + ctx.measureText(ch).width + pad, 0);
-        if (blockW > totalW) {
-          fontSize = fontSize * (totalW / blockW) * 0.97; // 3% safety margin
-        }
-      }
-
-      ctx.font         = `400 ${fontSize}px 'Comic Sans MS', 'Chalkboard SE', cursive`;
+      ctx.font         = '400 ' + fontSize + 'px ' + TRACING_GUIDE_FONT;
       ctx.textAlign    = 'center';
       ctx.textBaseline = 'alphabetic';
       ctx.fillStyle    = 'rgba(155,160,180,0.38)';
@@ -4212,13 +4688,26 @@
         if (cursor) cursor.style.display = 'none';
       }
 
+      function drawTouchStillDown(e) {
+        if (tracingDrawTouchId == null) return false;
+        if (!e.touches) return !!tracingDrawing;
+        for (let i = 0; i < e.touches.length; i++) {
+          if (e.touches[i].identifier === tracingDrawTouchId) return true;
+        }
+        return false;
+      }
+
       function startDraw(e) {
         e.preventDefault();
         if (e.changedTouches && e.changedTouches.length) {
-          if (tracingDrawing || tracingDrawTouchId != null) return;
+          if (tracingDrawTouchId != null && !drawTouchStillDown(e)) {
+            resetTracingPointerState();
+          }
           const t = e.changedTouches[0];
-          if (typeof pointInTracingLockDeadzone === 'function' &&
-              pointInTracingLockDeadzone(t.clientX, t.clientY)) {
+          if (t && t.identifier === tracingIgnoreTouchId) return;
+          if (tracingDrawing || tracingDrawTouchId != null) return;
+          if (typeof pointInTracingControlDeadzone === 'function' &&
+              pointInTracingControlDeadzone(t.clientX, t.clientY)) {
             return;
           }
           tracingDrawTouchId = t.identifier;
@@ -4232,9 +4721,9 @@
           return;
         }
         const src = e;
-        if (src && typeof pointInTracingLockDeadzone === 'function' &&
-            pointInTracingLockDeadzone(src.clientX, src.clientY)) {
-          tracingDrawing = false;
+        if (src && typeof pointInTracingControlDeadzone === 'function' &&
+            pointInTracingControlDeadzone(src.clientX, src.clientY)) {
+          resetTracingPointerState();
           return;
         }
         tracingDrawing = true;
@@ -4248,9 +4737,17 @@
 
       function moveDraw(e) {
         e.preventDefault();
+        if (e.touches && tracingDrawTouchId != null && !drawTouchStillDown(e)) {
+          resetTracingPointerState();
+          return;
+        }
         if (!tracingDrawing) return;
         const src = getDrawTouch(e);
         if (!src) return;
+        if (typeof pointInTracingControlDeadzone === 'function' &&
+            pointInTracingControlDeadzone(src.clientX, src.clientY)) {
+          return;
+        }
         const p = getPosFromClient(src.clientX, src.clientY);
         if (tracingToolMode === 'erase') eraseAtPoint(p.x, p.y);
         else extendTracingStroke(p.x, p.y);
@@ -4259,17 +4756,15 @@
       }
 
       function endDraw(e) {
-        if (e.changedTouches && tracingDrawTouchId != null) {
-          let ours = false;
+        if (e.touches && tracingDrawTouchId != null && drawTouchStillDown(e)) return;
+        if (e.changedTouches) {
           for (let i = 0; i < e.changedTouches.length; i++) {
-            if (e.changedTouches[i].identifier === tracingDrawTouchId) { ours = true; break; }
+            if (e.changedTouches[i].identifier === tracingIgnoreTouchId) {
+              tracingIgnoreTouchId = null;
+            }
           }
-          if (!ours) return;
         }
-        tracingDrawTouchId = null;
-        tracingDrawing = false;
-        tracingCurrentStroke = null;
-        hideCursor();
+        resetTracingPointerState();
       }
 
       c.addEventListener('mousedown',  startDraw);
@@ -4279,6 +4774,16 @@
       c.addEventListener('touchstart', startDraw, { passive: false });
       c.addEventListener('touchmove',  moveDraw,  { passive: false });
       c.addEventListener('touchend',   endDraw);
+      c.addEventListener('touchcancel', endDraw);
+      window.addEventListener('touchcancel', function(ev) {
+        if (!ev.touches || ev.touches.length === 0) resetTracingPointerState();
+      }, { capture: true });
+      window.addEventListener('touchend', function(ev) {
+        if (!ev.touches || ev.touches.length === 0) {
+          tracingIgnoreTouchId = null;
+          if (tracingDrawing || tracingDrawTouchId != null) resetTracingPointerState();
+        }
+      }, { capture: true });
     }
 
     function pickColorForPosition(x) {
@@ -4585,6 +5090,8 @@
     }
 
     function tracingNavFlash(dir) {
+      if (typeof cancelTracingSpeech === 'function') cancelTracingSpeech();
+
       tracingNavShuffled(dir);
       const id = dir === -1 ? 'tracingFlashLeft' : 'tracingFlashRight';
       const el = document.getElementById(id);
@@ -4749,6 +5256,13 @@
       setTabButtonActive(manBtn, active === 'manual');
       setTabButtonActive(alpBtn, active === 'alphabet');
       setTabButtonActive(svgBtn, active === 'svg');
+      const bgBtn = document.getElementById('tracingBgBtn');
+      if (bgBtn) bgBtn.style.display = active === 'svg' ? 'flex' : 'none';
+      const ttsToggle = document.getElementById('tracingTtsToggle');
+      if (ttsToggle) ttsToggle.style.display = active === 'svg' ? 'flex' : 'none';
+      if (typeof applyTracingBgTheme === 'function') applyTracingBgTheme();
+      if (typeof positionTracingSpeakBtn === 'function') positionTracingSpeakBtn();
+      if (typeof cancelTracingSpeech === 'function') cancelTracingSpeech();
 
       const shuffleDIY   = document.getElementById('tracingShuffleDIY');
       const shuffleAlpha = document.getElementById('tracingShuffleAlpha');
@@ -5378,6 +5892,10 @@
       if (document.getElementById('tracingPage').style.display !== 'none') {
         setTimeout(setupTracingCanvas, 100);
       }
+    });
+    document.addEventListener('visibilitychange', function() {
+      if (document.visibilityState === 'visible') resetTracingPointerState();
+      else resetTracingPointerState();
     });
     function closeAllTopMenus(event) {
       if (!event.target.closest('.dropdown')) {
