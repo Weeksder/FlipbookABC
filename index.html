@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="flashabc-build" content="328">
+<meta name="flashabc-build" content="330">
 
 <!-- Standalone Home Screen web app (iOS / iPadOS / Android) -->
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1615,7 +1615,7 @@
 
   <!-- ── Letter Tracing Page ── -->
   <div id="tracingPage" style="display:none;position:fixed;inset:0;z-index:50000;background:#fdf8f0;flex-direction:column;overflow:hidden;">
-    <div id="flashabcBuildBadge" style="position:absolute;right:8px;bottom:6px;z-index:60;font:600 10px/1 Arial,sans-serif;color:#b0a898;opacity:0.85;pointer-events:none;">build 328</div>
+    <div id="flashabcBuildBadge" style="position:absolute;right:8px;bottom:6px;z-index:60;font:600 10px/1 Arial,sans-serif;color:#b0a898;opacity:0.85;pointer-events:none;">build 330</div>
 
     <!-- Single combined header row: back | centred tabs | controls -->
     <div style="display:flex;align-items:flex-end;padding:8px 12px 0;background:#8b6f47;flex-shrink:0;">
@@ -3413,7 +3413,7 @@
       '#666666', // Gray
     ];
     // Build stamp — check Settings/About or window.FLASHABC_BUILD if Safari looks stale
-    const FLASHABC_BUILD = '328';
+    const FLASHABC_BUILD = '330';
     window.FLASHABC_BUILD = FLASHABC_BUILD;
     // Alphabet tab highlighter width (fixed)
     const TRACING_STROKE_WIDTH = 54;
@@ -3589,9 +3589,16 @@
       y: 'yuh', z: 'zzz'
     };
 
+    let tracingPhonemeAudio = null;
+
     function cancelTracingSpeech() {
       tracingSpeakGen++;
       if (window.speechSynthesis) window.speechSynthesis.cancel();
+      if (tracingPhonemeAudio) {
+        try { tracingPhonemeAudio.pause(); } catch (e) {}
+        try { tracingPhonemeAudio.src = ''; } catch (e) {}
+        tracingPhonemeAudio = null;
+      }
     }
 
     function positionTracingSpeakBtn() {
@@ -3632,33 +3639,106 @@
       if (typeof presentTracingInk === 'function') presentTracingInk();
     }
 
-    function speakTracingLetter() {
-      if (!tracingTtsOn || tracingMode !== 'svg') return;
-      if (!('speechSynthesis' in window)) return;
-      const ch = (typeof svgLetterKey === 'function' ? svgLetterKey(tracingWord || 'a') : (tracingWord || 'a')).toString().charAt(0).toLowerCase();
+    // Phoneme MP3s live next to this HTML: sounds/phonemes/{id}.mp3
+    // Same relative path works locally and on GitHub Pages.
+    // name = letter-name vowel (A=ey, E=iy, I=ay, O=ow, U=yuw);
+    // sound = short/consonant clip. Consonant names still use TTS (“bee”).
+    const TRACING_PHONEME_BASE = 'sounds/phonemes/';
+    const TRACING_PHONEME_CLIPS = {
+      a: { name: 'ey.mp3', sound: 'ae.mp3' },
+      b: { sound: 'b.mp3' },
+      c: { sound: 'k.mp3' },
+      d: { sound: 'd.mp3' },
+      e: { name: 'iy.mp3', sound: 'eh.mp3' },
+      f: { sound: 'f.mp3' },
+      g: { sound: 'g.mp3' },
+      h: { sound: 'hh.mp3' },
+      i: { name: 'ay.mp3', sound: 'ih.mp3' },
+      j: { sound: 'jh.mp3' },
+      k: { sound: 'k.mp3' },
+      l: { sound: 'l.mp3' },
+      m: { sound: 'm.mp3' },
+      n: { sound: 'n.mp3' },
+      o: { name: 'ow.mp3', sound: 'aa.mp3' },
+      p: { sound: 'p.mp3' },
+      q: { sound: 'kw.mp3' },
+      r: { sound: 'r.mp3' },
+      s: { sound: 's.mp3' },
+      t: { sound: 't.mp3' },
+      u: { name: 'yuw.mp3', sound: 'ah.mp3' },
+      v: { sound: 'v.mp3' },
+      w: { sound: 'w.mp3' },
+      x: { sound: 'ks.mp3' },
+      y: { sound: 'y.mp3' },
+      z: { sound: 'z.mp3' }
+    };
+
+    function playTracingPhonemeFile(src, gen) {
+      return new Promise(function(resolve, reject) {
+        if (gen !== tracingSpeakGen) { resolve(false); return; }
+        const audio = new Audio(src);
+        tracingPhonemeAudio = audio;
+        audio.onended = function() {
+          if (tracingPhonemeAudio === audio) tracingPhonemeAudio = null;
+          resolve(true);
+        };
+        audio.onerror = function() { reject(new Error('audio-error')); };
+        const p = audio.play();
+        if (p && p.catch) p.catch(reject);
+      });
+    }
+
+    function speakTtsOne(text, gen, rate) {
+      return new Promise(function(resolve) {
+        if (gen !== tracingSpeakGen || !window.speechSynthesis) { resolve(false); return; }
+        const u = new SpeechSynthesisUtterance(text);
+        u.rate = rate || 0.9;
+        u.pitch = 1;
+        u.lang = 'en-US';
+        u.onend = function() { resolve(true); };
+        u.onerror = function() { resolve(false); };
+        window.speechSynthesis.speak(u);
+      });
+    }
+
+    function speakTracingLetterTts(ch, gen) {
       const name = TRACING_LETTER_NAMES[ch] || ch;
       const sound = TRACING_SHORT_SOUNDS[ch] || ch;
+      speakTtsOne(name, gen, 0.9).then(function(ok) {
+        if (!ok || gen !== tracingSpeakGen) return;
+        return new Promise(function(resolve) { setTimeout(resolve, 1200); });
+      }).then(function() {
+        if (gen !== tracingSpeakGen) return;
+        return speakTtsOne(TRACING_SHORT_SOUNDS[ch] || sound, gen, 0.75);
+      });
+    }
+
+    function speakTracingLetter() {
+      if (!tracingTtsOn || tracingMode !== 'svg') return;
+      const ch = (typeof svgLetterKey === 'function' ? svgLetterKey(tracingWord || 'a') : (tracingWord || 'a')).toString().charAt(0).toLowerCase();
       const gen = ++tracingSpeakGen;
-      window.speechSynthesis.cancel();
-      const u1 = new SpeechSynthesisUtterance(name);
-      u1.rate = 0.9;
-      u1.pitch = 1;
-      u1.lang = 'en-US';
-      const u2 = new SpeechSynthesisUtterance(sound);
-      u2.rate = 0.75;
-      u2.pitch = 1;
-      u2.lang = 'en-US';
-      u1.onend = function() {
+      if (window.speechSynthesis) window.speechSynthesis.cancel();
+      if (tracingPhonemeAudio) {
+        try { tracingPhonemeAudio.pause(); } catch (e) {}
+        tracingPhonemeAudio = null;
+      }
+      const clip = TRACING_PHONEME_CLIPS[ch] || {};
+      const nameSrc = clip.name ? (TRACING_PHONEME_BASE + clip.name) : null;
+      const soundSrc = clip.sound ? (TRACING_PHONEME_BASE + clip.sound) : null;
+      const nameP = nameSrc
+        ? playTracingPhonemeFile(nameSrc, gen)
+        : speakTtsOne(TRACING_LETTER_NAMES[ch] || ch, gen, 0.9);
+      nameP.then(function(ok) {
+        if (!ok || gen !== tracingSpeakGen) return;
+        return new Promise(function(resolve) { setTimeout(resolve, 1200); });
+      }).then(function() {
         if (gen !== tracingSpeakGen) return;
-        setTimeout(function() {
-          if (gen !== tracingSpeakGen) return;
-          window.speechSynthesis.speak(u2);
-        }, 1200);
-      };
-      setTimeout(function() {
+        if (soundSrc) return playTracingPhonemeFile(soundSrc, gen);
+        return speakTtsOne(TRACING_SHORT_SOUNDS[ch] || ch, gen, 0.75);
+      }).catch(function() {
         if (gen !== tracingSpeakGen) return;
-        window.speechSynthesis.speak(u1);
-      }, 60);
+        speakTracingLetterTts(ch, gen);
+      });
     }
 
     function toggleTracingBg() {
