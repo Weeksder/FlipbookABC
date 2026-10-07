@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="flashabc-build" content="353">
+<meta name="flashabc-build" content="365">
 
 <!-- Standalone Home Screen web app (iOS / iPadOS / Android) -->
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1362,6 +1362,115 @@
     #tracingPage.is-locked #tracingLockBtn .lock-icon-open { display: none; }
     #tracingPage.is-locked #tracingLockBtn .lock-icon-closed { display: block; }
 
+    /* SVG case slider: FlashABC layout-4 A | a, top-left of the writing page. */
+    #tracingSvgCaseToggle {
+      display: none;
+      position: absolute;
+      left: 8px;
+      top: 4px;
+      z-index: 56;
+      height: 56px;
+      border-radius: 16px;
+      overflow: visible;
+      border: 2px solid #c8b89a;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.16);
+      background: #efe6d8;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    #tracingSvgCaseToggle.is-placed { display: block; }
+    #tracingPage.worksheet-mode #tracingSvgCaseToggle,
+    #tracingPage.svg-pair #tracingSvgCaseToggle { display: none !important; }
+    #tracingSvgIndex {
+      display: none;
+      position: absolute;
+      left: 50%;
+      top: 4px;
+      transform: translateX(-50%);
+      z-index: 56;
+      height: 80px;
+      align-items: center;
+      justify-content: center;
+      font: 600 15px Arial, sans-serif;
+      color: #6e655c;
+      line-height: 1;
+      pointer-events: none;
+      white-space: nowrap;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    #tracingSvgIndex.is-placed { display: flex; }
+    #tracingPage.worksheet-mode #tracingSvgIndex { display: none !important; }
+    #tracingSvgCaseViewport {
+      position: relative;
+      height: 56px;
+      width: 112px;
+      overflow: visible;
+      touch-action: none;
+      cursor: pointer;
+      background: linear-gradient(90deg, #f6f0e6 0%, #efe6d8 100%);
+      border-radius: 14px;
+    }
+    #tracingSvgCaseTrack {
+      display: flex;
+      flex-direction: row;
+      width: 112px;
+      height: 56px;
+      position: relative;
+      z-index: 1;
+    }
+    .tracing-svg-case-opt {
+      width: 56px;
+      height: 56px;
+      border: none;
+      cursor: pointer;
+      flex-shrink: 0;
+      padding: 0;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Comic Sans MS', 'Chalkboard SE', Arial, sans-serif;
+      font-weight: 700;
+      font-size: 1.65rem;
+      color: #35654D;
+      line-height: 1;
+      -webkit-tap-highlight-color: transparent;
+      outline: none;
+    }
+    #tracingSvgCaseGlass {
+      position: absolute;
+      left: 2px;
+      top: 50%;
+      width: 52px;
+      height: 64px;
+      z-index: 3;
+      margin-top: -32px;
+      border-radius: 16px;
+      pointer-events: none;
+      box-sizing: border-box;
+      background: transparent;
+      border: 3px solid #6b5a45;
+      box-shadow:
+        0 0 0 2px rgba(255,255,255,0.9),
+        0 3px 10px rgba(60,45,30,0.22),
+        inset 0 0 0 1px rgba(255,255,255,0.5);
+      transition: transform 0.28s cubic-bezier(0.22,0.9,0.3,1);
+      will-change: transform;
+    }
+    #tracingSvgCaseGlass::after {
+      content: '';
+      position: absolute;
+      left: 10px;
+      top: 6px;
+      width: 22px;
+      height: 11px;
+      border-radius: 10px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.45), rgba(255,255,255,0));
+      pointer-events: none;
+    }
+
     #tracingLockOverlay {
       display: none;
       position: absolute;
@@ -1397,6 +1506,27 @@
       background: #8b6f47;
     }
     #tracingTtsToggle.is-on svg { stroke: #f5ece0; }
+    #tracingDoubleBtn.is-on {
+      background: #8b6f47 !important;
+      color: #f5ece0 !important;
+    }
+    /* Double letters: turn a portrait viewport into a landscape page. */
+    #tracingPage.svg-double-land {
+      position: fixed !important;
+      width: 100vh !important;
+      width: 100dvh !important;
+      height: 100vw !important;
+      height: 100dvw !important;
+      top: 0 !important;
+      left: 100vw !important;
+      left: 100dvw !important;
+      right: auto !important;
+      bottom: auto !important;
+      margin: 0 !important;
+      transform: rotate(90deg) !important;
+      transform-origin: top left !important;
+      overflow: hidden !important;
+    }
     #tracingSpeakBtn {
       position: absolute;
       z-index: 35;
@@ -1595,11 +1725,18 @@
 
 
     #letterLinesGear { display: none; }
+    #letterGuidesCheck {
+      width: 20px;
+      height: 20px;
+      margin: 0;
+      accent-color: #8b6f47;
+      cursor: pointer;
+    }
     #letterLinesGear .settings-btn {
       width: 34px;
       height: 34px;
     }
-    #tracingPage[class*="letter-sheet"] #letterLinesGear { display: inline-block; }
+    #tracingPage.worksheet-mode[class*="letter-sheet"] #letterLinesGear { display: inline-block; }
     #tracingPrintBtn {
       display: none;
       background: transparent;
@@ -1626,12 +1763,59 @@
       align-items: center;
       justify-content: center;
     }
-    #tracingPage.worksheet-mode #tracingWorksheetWrap { display: flex; }
+    #tracingPage.worksheet-mode #tracingWorksheetWrap {
+      display: flex;
+      touch-action: none;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+    }
+    #tracingWorksheetInk {
+      display: none;
+      position: absolute;
+      z-index: 8;
+      touch-action: none;
+      background: transparent;
+      pointer-events: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    #tracingPage.worksheet-mode #tracingWorksheetInk { pointer-events: auto; }
+    #tracingNavPrev, #tracingNavNext { touch-action: manipulation; }
+    #tracingWorksheetUndo,
+    #tracingWorksheetClear {
+      display: none;
+      position: absolute;
+      top: 10px;
+      z-index: 30;
+      width: 72px;
+      height: 72px;
+      padding: 0;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    #tracingWorksheetUndo { left: 10px; }
+    #tracingWorksheetClear { right: 10px; }
+    #tracingPage.worksheet-mode #tracingWorksheetUndo,
+    #tracingPage.worksheet-mode #tracingWorksheetClear { display: flex; }
+    #tracingWorksheetUndo svg,
+    #tracingWorksheetClear svg { filter: drop-shadow(0 1px 3px rgba(0,0,0,0.28)); }
+    #tracingWorksheetUndo.is-idle,
+    #tracingWorksheetClear.is-idle { opacity: 0.35; }
+    #tracingWorksheetUndo:active,
+    #tracingWorksheetClear:active { transform: scale(0.92); }
     #tracingPage.worksheet-mode #tracingCanvas,
     #tracingPage.worksheet-mode #tracingSpeakBtn,
     #tracingPage.worksheet-mode #tracingToolToggle,
     #tracingPage.worksheet-mode #tracingClearBtn,
     #tracingPage.worksheet-mode #tracingLockBtn,
+    #tracingPage.worksheet-mode #tracingSvgCaseToggle,
+    #tracingPage.worksheet-mode #tracingSvgIndex,
     #tracingPage.worksheet-mode #tracingLockOverlay,
     #tracingPage.worksheet-mode #tracingCursor { display: none !important; }
     #tracingPage.worksheet-mode #tracingNavNext { bottom: 0 !important; }
@@ -1763,6 +1947,7 @@
         overflow: hidden !important;
       }
       #flashabcBuildBadge { display: none !important; }
+      #tracingWorksheetInk { display: none !important; }
       body > *:not(#tracingPage) { display: none !important; }
       #tracingPage {
         display: block !important;
@@ -1771,6 +1956,10 @@
         background: #fff !important;
         overflow: visible !important;
         height: auto !important;
+        width: auto !important;
+        left: auto !important;
+        top: auto !important;
+        transform: none !important;
         z-index: auto !important;
       }
       #tracingPage > *:not(#tracingNotebook) { display: none !important; }
@@ -1846,7 +2035,7 @@
 
   <!-- ── Letter Tracing Page ── -->
   <div id="tracingPage" style="display:none;position:fixed;inset:0;z-index:50000;background:#fdf8f0;flex-direction:column;overflow:hidden;">
-    <div id="flashabcBuildBadge" style="position:absolute;right:8px;bottom:6px;z-index:60;font:600 10px/1 Arial,sans-serif;color:#b0a898;opacity:0.85;pointer-events:none;">build 353</div>
+    <div id="flashabcBuildBadge" style="position:absolute;right:8px;bottom:6px;z-index:60;font:600 10px/1 Arial,sans-serif;color:#b0a898;opacity:0.85;pointer-events:none;">build 365</div>
 
     <!-- Single combined header row: back | centred tabs | controls -->
     <div style="display:flex;align-items:flex-end;padding:8px 12px 0;background:#8b6f47;flex-shrink:0;">
@@ -1967,6 +2156,10 @@
               <button type="button" class="settings-toggle-btn" id="letterLinesBtn2" onclick="setLetterLinesLayout('2')">2 rows</button>
             </span>
           </div>
+          <div class="settings-row">
+            <label class="settings-label" for="letterGuidesCheck">Guidelines</label>
+            <input id="letterGuidesCheck" type="checkbox" checked onchange="setLetterGuides(this.checked)">
+          </div>
         </div>
       </div>
       <button id="tracingPrintBtn" type="button" onclick="printTracingWorksheet()" title="Print worksheet">
@@ -1982,6 +2175,7 @@
     <!-- Notebook lines area -->
     <div id="tracingNotebook" style="flex:1;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;padding:10px 6px;">
       <div id="tracingWorksheetWrap">
+        <canvas id="tracingWorksheetInk" aria-hidden="true"></canvas>
         <div id="tracingWorksheetSheet">
         <div id="tracingWorksheetHead">
           <div class="ws-field">Name:<span class="ws-line name"></span></div>
@@ -4536,6 +4730,21 @@
         </svg>
       </button>
 
+      <button id="tracingWorksheetUndo" type="button" onclick="undoWorksheetInk()" title="Undo" aria-label="Undo">
+        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#3b6fb6" stroke-width="2.15" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 12a9 9 0 1 0 3-6.7"/>
+          <path d="M3 4v6h6"/>
+        </svg>
+      </button>
+      <button id="tracingWorksheetClear" type="button" onclick="clearWorksheetInk()" title="Clear all strokes" aria-label="Clear all strokes">
+        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#f44336" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="3 6 5 6 21 6"></polyline>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          <line x1="10" y1="11" x2="10" y2="17"></line>
+          <line x1="14" y1="11" x2="14" y2="17"></line>
+        </svg>
+      </button>
+
       <!-- Full-height invisible left tap zone + floating arrow -->
       <button id="tracingNavPrev" onclick="tracingNavFlash(-1)" aria-label="Previous" style="
         position:absolute;left:0;top:0;bottom:0;width:44px;
@@ -4641,6 +4850,16 @@
     </div><!-- end tracingNotebook -->
 
     <div id="tracingLockOverlay" aria-hidden="true"></div>
+    <div id="tracingSvgIndex" aria-hidden="true"></div>
+    <div id="tracingSvgCaseToggle" aria-label="Uppercase or lowercase">
+      <div id="tracingSvgCaseViewport">
+        <div id="tracingSvgCaseTrack">
+          <button type="button" class="tracing-svg-case-opt" id="tracingSvgCaseUpper" onclick="event.stopPropagation(); setTracingSvgCase(true)" title="Uppercase" aria-label="Uppercase">A</button>
+          <button type="button" class="tracing-svg-case-opt" id="tracingSvgCaseLower" onclick="event.stopPropagation(); setTracingSvgCase(false)" title="Lowercase" aria-label="Lowercase">a</button>
+        </div>
+        <div id="tracingSvgCaseGlass" aria-hidden="true"></div>
+      </div>
+    </div>
     <button id="tracingLockBtn" type="button" title="Lock screen" aria-label="Lock screen" aria-pressed="false">
       <svg class="lock-icon-open" width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="#FFD700" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
@@ -6198,6 +6417,8 @@
     let tracingLastX = 0, tracingLastY = 0;
     let tracingCaseMode = 0; // 0=lower, 1=UPPER, 2=Sentence
     let tracingSvgUpper = true; // SVG tab case: true=A–Z, false=a–z
+    let tracingSvgDouble = false; // SVG tab landscape: uppercase and lowercase together
+    let tracingSvgPenScale = 0; // pair height / single-letter height, double only
 
     // Full-strength hues; see-through amount is TRACING_STROKE_ALPHA
     // so students can still see the dashed guide lines underneath
@@ -6215,7 +6436,7 @@
       '#666666', // Gray
     ];
     // Build stamp — check Settings/About or window.FLASHABC_BUILD if Safari looks stale
-    const FLASHABC_BUILD = '353';
+    const FLASHABC_BUILD = '365';
     window.FLASHABC_BUILD = FLASHABC_BUILD;
     // Alphabet tab highlighter width (fixed)
     const TRACING_STROKE_WIDTH = 54;
@@ -6242,6 +6463,13 @@
         const lines = getTracingLines(H, 2);
         const fontSize = (lines.l3 - lines.l1) / 0.72;
         const stem = fontSize * TRACING_ALPHABET_M_STEM_RATIO;
+        // Landscape pair only. About half the one-letter pen, then a bit
+        // thinner again when the two guides are shorter than one full letter.
+        if (tracingSvgDouble) {
+          const fit = tracingSvgPenScale > 0.15 ? tracingSvgPenScale : 0.9;
+          const s = fit * 0.55;
+          return Math.max(14, Math.min(Math.round(stem * s), 48));
+        }
         return Math.max(40, Math.min(Math.round(stem), 100));
       }
 
@@ -6310,25 +6538,94 @@
       tracingColorIdx = tracingColorQueue.shift();
     }
 
-    function cycleTracingCase() {
-      // SVG tab: toggle Uppercase / lowercase SVG guides
-      if (tracingMode === 'svg') {
-        tracingSvgUpper = !tracingSvgUpper;
-        const btn = document.getElementById('tracingCaseBtn');
-        if (btn) {
-          btn.textContent = tracingSvgUpper ? 'A' : 'a';
-          btn.disabled = false;
-          btn.style.opacity = '1';
-          btn.style.cursor = 'pointer';
-        }
-        // Drop strokes when case changes; reload matching SVG
-        tracingStrokes = [];
-        tracingCurrentStroke = null;
-        const key = svgLetterKey(tracingWord || 'a');
-        ensureTracingSvg(key, function () {
-          if (tracingMode === 'svg') drawTracingPage();
+    function syncTracingDoubleBtn() {
+      const btn = document.getElementById('tracingDoubleBtn');
+      if (btn) btn.style.display = 'none';
+    }
+
+    function applyTracingDoubleLayout() {
+      const page = document.getElementById('tracingPage');
+      if (!page) return false;
+      // Real device rotation only. Do not spin a portrait page into landscape.
+      if (page.classList.contains('svg-double-land')) page.classList.remove('svg-double-land');
+      const wantPair = tracingMode === 'svg' && window.innerWidth > window.innerHeight;
+      const changed = tracingSvgDouble !== wantPair;
+      tracingSvgDouble = wantPair;
+      page.classList.toggle('svg-pair', wantPair);
+      if (!wantPair) tracingSvgPenScale = 0;
+      if (typeof positionTracingSvgCaseToggle === 'function') positionTracingSvgCaseToggle();
+      if (!changed || tracingMode !== 'svg' || page.style.display === 'none') return changed;
+      tracingStrokes = [];
+      tracingCurrentStroke = null;
+      const ch = (tracingWord || 'a').toString().charAt(0);
+      if (wantPair) {
+        ensureTracingSvgExact(ch.toUpperCase(), function () {
+          ensureTracingSvgExact(ch.toLowerCase(), function () {
+            if (tracingMode === 'svg' && tracingSvgDouble) drawTracingPage();
+          });
         });
-        drawTracingPage();
+      } else {
+        ensureTracingSvg(svgLetterKey(tracingWord || 'a'), function () {
+          if (tracingMode === 'svg' && !tracingSvgDouble) drawTracingPage();
+        });
+      }
+      drawTracingPage();
+      setTimeout(setupTracingCanvas, 50);
+      return changed;
+    }
+
+    function toggleTracingDouble() {
+      applyTracingDoubleLayout();
+    }
+
+    const TRACING_SVG_CASE_ITEM_W = 56;
+    function updateTracingSvgCaseToggle() {
+      const glass = document.getElementById('tracingSvgCaseGlass');
+      const upperBtn = document.getElementById('tracingSvgCaseUpper');
+      const lowerBtn = document.getElementById('tracingSvgCaseLower');
+      if (glass) {
+        const x = tracingSvgUpper ? 0 : TRACING_SVG_CASE_ITEM_W;
+        glass.style.transform = 'translateX(' + x + 'px)';
+      }
+      const dull = 'grayscale(1) brightness(0.92) contrast(0.85)';
+      if (upperBtn && lowerBtn) {
+        if (tracingSvgUpper) {
+          upperBtn.style.opacity = '1';
+          upperBtn.style.filter = 'none';
+          upperBtn.style.transform = 'scale(1.18)';
+          lowerBtn.style.opacity = '0.38';
+          lowerBtn.style.filter = dull;
+          lowerBtn.style.transform = 'scale(0.9)';
+        } else {
+          lowerBtn.style.opacity = '1';
+          lowerBtn.style.filter = 'none';
+          lowerBtn.style.transform = 'scale(1.18)';
+          upperBtn.style.opacity = '0.38';
+          upperBtn.style.filter = dull;
+          upperBtn.style.transform = 'scale(0.9)';
+        }
+      }
+    }
+    function setTracingSvgCase(upper) {
+      const next = !!upper;
+      const changed = tracingSvgUpper !== next;
+      tracingSvgUpper = next;
+      updateTracingSvgCaseToggle();
+      if (!changed) return;
+      // Double keeps both cases on the page. Stored case applies when Double is off.
+      if (tracingSvgDouble) return;
+      tracingStrokes = [];
+      tracingCurrentStroke = null;
+      const key = svgLetterKey(tracingWord || 'a');
+      ensureTracingSvg(key, function () {
+        if (tracingMode === 'svg') drawTracingPage();
+      });
+      drawTracingPage();
+    }
+    function cycleTracingCase() {
+      // SVG tab: the A | a slider owns this. The toolbar button stays for DIY.
+      if (tracingMode === 'svg') {
+        setTracingSvgCase(!tracingSvgUpper);
         return;
       }
       // DIY: aa → AA → Aa
@@ -6400,6 +6697,12 @@
       const show = tracingMode === 'svg' && tracingTtsOn;
       btn.style.display = show ? 'flex' : 'none';
       if (!show) return;
+      const page = document.getElementById('tracingPage');
+      if (page && page.classList.contains('svg-double-land')) {
+        btn.style.left = Math.max(6, canvas.offsetLeft + 8) + 'px';
+        btn.style.top = Math.max(4, canvas.offsetTop + 6) + 'px';
+        return;
+      }
       const nb = notebook.getBoundingClientRect();
       const cr = canvas.getBoundingClientRect();
       btn.style.left = Math.max(6, cr.left - nb.left + 8) + 'px';
@@ -6417,6 +6720,7 @@
       if (!tracingTtsOn) cancelTracingSpeech();
       else if (window.speechSynthesis) window.speechSynthesis.getVoices();
       positionTracingSpeakBtn();
+      if (typeof positionTracingSvgCaseToggle === 'function') positionTracingSvgCaseToggle();
       if (tracingMode === 'svg') drawTracingPageKeepInk();
     }
 
@@ -6545,6 +6849,7 @@
       const input = document.getElementById('tracingWordInput');
       input.value = tracingWord || '';
       applyTracingBgTheme();
+      if (typeof applyTracingDoubleLayout === 'function') applyTracingDoubleLayout();
       setTimeout(() => { setupTracingCanvas(); }, 50);
     }
 
@@ -6651,9 +6956,36 @@
     }
     window.pointInTracingClearDeadzone = pointInTracingClearDeadzone;
 
+    function updateTracingSvgCaseDeadzone() {
+      const toggle = document.getElementById('tracingSvgCaseToggle');
+      if (!toggle || toggle.style.display === 'none') {
+        window._tracingSvgCaseDeadzone = null;
+        return;
+      }
+      const r = toggle.getBoundingClientRect();
+      if (r.width < 8 || r.height < 8) {
+        window._tracingSvgCaseDeadzone = null;
+        return;
+      }
+      const pad = 10;
+      window._tracingSvgCaseDeadzone = {
+        left: r.left - pad,
+        top: r.top - pad,
+        right: r.right + pad,
+        bottom: r.bottom + pad
+      };
+    }
+    function pointInTracingSvgCaseDeadzone(clientX, clientY) {
+      const z = window._tracingSvgCaseDeadzone;
+      if (!z) return false;
+      return clientX >= z.left && clientX <= z.right &&
+             clientY >= z.top && clientY <= z.bottom;
+    }
+
     function pointInTracingControlDeadzone(clientX, clientY) {
       return pointInTracingLockDeadzone(clientX, clientY) ||
-             pointInTracingClearDeadzone(clientX, clientY);
+             pointInTracingClearDeadzone(clientX, clientY) ||
+             pointInTracingSvgCaseDeadzone(clientX, clientY);
     }
 
     function positionTracingLockBtn() {
@@ -6662,19 +6994,102 @@
       const lockBtn = document.getElementById('tracingLockBtn');
       if (!page || !notebook || !lockBtn) return;
       if (page.style.display === 'none') return;
+      const insetX = 16;
+      const insetY = 4;
+      if (page.classList.contains('svg-double-land')) {
+        if (notebook.clientWidth < 20 || notebook.clientHeight < 20) return;
+        lockBtn.style.top = Math.max(0, notebook.offsetTop + insetY) + 'px';
+        lockBtn.style.right = insetX + 'px';
+        lockBtn.style.left = 'auto';
+        lockBtn.style.bottom = 'auto';
+        lockBtn.classList.add('is-placed');
+        updateTracingLockDeadzone();
+        updateTracingClearDeadzone();
+        positionTracingSvgCaseToggle();
+        return;
+      }
       const pr = page.getBoundingClientRect();
       const nr = notebook.getBoundingClientRect();
       if (nr.width < 20 || nr.height < 20) return;
-      const inset = 16;
-      lockBtn.style.top = Math.max(0, (nr.top - pr.top) + inset) + 'px';
-      lockBtn.style.right = Math.max(0, (pr.right - nr.right) + inset) + 'px';
+      lockBtn.style.top = Math.max(0, (nr.top - pr.top) + insetY) + 'px';
+      lockBtn.style.right = Math.max(0, (pr.right - nr.right) + insetX) + 'px';
       lockBtn.style.left = 'auto';
       lockBtn.style.bottom = 'auto';
       lockBtn.classList.add('is-placed');
       updateTracingLockDeadzone();
       updateTracingClearDeadzone();
+      positionTracingSvgCaseToggle();
+    }
+    function positionTracingSvgCaseToggle() {
+      const page = document.getElementById('tracingPage');
+      const toggle = document.getElementById('tracingSvgCaseToggle');
+      const lockBtn = document.getElementById('tracingLockBtn');
+      if (!page || !toggle) return;
+      const show = tracingMode === 'svg' && !tracingSvgDouble && page.style.display !== 'none';
+      if (!show) {
+        toggle.style.display = 'none';
+        toggle.classList.remove('is-placed');
+        window._tracingSvgCaseDeadzone = null;
+        positionTracingSvgIndex();
+        return;
+      }
+      let lockTop = 4;
+      if (lockBtn && lockBtn.style.top) {
+        const n = parseFloat(lockBtn.style.top);
+        if (!isNaN(n)) lockTop = n;
+      }
+      const notebook = document.getElementById('tracingNotebook');
+      let left = notebook ? Math.max(0, notebook.offsetLeft + 8) : 8;
+      if (tracingTtsOn && notebook) {
+        const speak = document.getElementById('tracingSpeakBtn');
+        if (speak && speak.offsetWidth > 8 && getComputedStyle(speak).display !== 'none') {
+          left = Math.max(left, notebook.offsetLeft + speak.offsetLeft + speak.offsetWidth + 8);
+        }
+      }
+      toggle.style.top = lockTop + 'px';
+      toggle.style.left = left + 'px';
+      toggle.style.right = 'auto';
+      toggle.style.bottom = 'auto';
+      toggle.style.transform = 'none';
+      toggle.style.display = 'block';
+      toggle.classList.add('is-placed');
+      if (typeof updateTracingSvgCaseToggle === 'function') updateTracingSvgCaseToggle();
+      updateTracingSvgCaseDeadzone();
+      positionTracingSvgIndex();
+    }
+    function updateTracingSvgIndex() {
+      const el = document.getElementById('tracingSvgIndex');
+      if (!el) return;
+      const list = usesAlphabetList() ? ALPHABET_LIST : tracingWordList;
+      const cur = usesAlphabetList() ? alphabetIndex : tracingWordIndex;
+      el.textContent = list && list.length ? ((cur + 1) + ' / ' + list.length) : '';
+    }
+    function positionTracingSvgIndex() {
+      const page = document.getElementById('tracingPage');
+      const el = document.getElementById('tracingSvgIndex');
+      const lockBtn = document.getElementById('tracingLockBtn');
+      if (!page || !el) return;
+      const show = tracingMode === 'svg' && page.style.display !== 'none';
+      if (!show) {
+        el.style.display = 'none';
+        el.classList.remove('is-placed');
+        return;
+      }
+      updateTracingSvgIndex();
+      let top = 4;
+      if (lockBtn && lockBtn.style.top) {
+        const n = parseFloat(lockBtn.style.top);
+        if (!isNaN(n)) top = n;
+      }
+      el.style.top = top + 'px';
+      el.style.left = '50%';
+      el.style.right = 'auto';
+      el.style.transform = 'translateX(-50%)';
+      el.style.display = 'flex';
+      el.classList.add('is-placed');
     }
     window.positionTracingLockBtn = positionTracingLockBtn;
+    window.positionTracingSvgCaseToggle = positionTracingSvgCaseToggle;
 
     (function initTracingLockSwipe() {
       // Mouse: pointer events on the button.
@@ -6920,12 +7335,18 @@
     function setupTracingCanvas() {
       const canvas = document.getElementById('tracingCanvas');
       const notebook = document.getElementById('tracingNotebook');
-      const rect = notebook.getBoundingClientRect();
-      if (rect.width < 40 || rect.height < 40) return;
+      const page = document.getElementById('tracingPage');
+      let w, h;
+      if (page && page.classList.contains('svg-double-land')) {
+        w = notebook.clientWidth - 12;
+        h = notebook.clientHeight - 12;
+      } else {
+        const rect = notebook.getBoundingClientRect();
+        w = rect.width - 12;
+        h = rect.height - 12;
+      }
+      if (w < 40 || h < 40) return;
       const dpr = window.devicePixelRatio || 1;
-
-      const w = rect.width - 12;
-      const h = rect.height - 12;
       canvas.width  = w * dpr;
       canvas.height = h * dpr;
       canvas.style.width  = w + 'px';
@@ -7082,28 +7503,41 @@
       img.src = src;
     }
 
+    const tracingSvgWaiters = {};
+
+    function ensureTracingSvgExact(letter, onReady) {
+      const key = (letter || 'A').toString().charAt(0);
+      if (Object.prototype.hasOwnProperty.call(tracingSvgCache, key) && tracingSvgCache[key]) {
+        if (onReady) onReady(tracingSvgCache[key]);
+        return;
+      }
+      if (!tracingSvgWaiters[key]) tracingSvgWaiters[key] = [];
+      if (onReady) tracingSvgWaiters[key].push(onReady);
+      if (tracingSvgLoading[key]) return;
+      tracingSvgLoading[key] = true;
+      function done(img) {
+        const waiters = tracingSvgWaiters[key] || [];
+        tracingSvgWaiters[key] = [];
+        for (let i = 0; i < waiters.length; i++) {
+          try { waiters[i](img || null); } catch (e) {}
+        }
+      }
+      if (TRACING_SVG_DATA[key]) {
+        loadSvgImage(TRACING_SVG_DATA[key], key, function (img) {
+          if (img) { done(img); return; }
+          tryFilePaths(key, done);
+        });
+        return;
+      }
+      tryFilePaths(key, done);
+    }
+
     function ensureTracingSvg(letter, onReady) {
       // SVG keys: A–Z uppercase pack, a–z lowercase pack (via svgLetterKey)
       const key = (typeof svgLetterKey === 'function')
         ? svgLetterKey(letter || 'a')
         : (letter || 'A').toString().charAt(0).toUpperCase();
-      if (Object.prototype.hasOwnProperty.call(tracingSvgCache, key) && tracingSvgCache[key]) {
-        onReady(tracingSvgCache[key]);
-        return;
-      }
-      // Don't stick on a permanent null failure — allow retry
-      if (tracingSvgLoading[key]) return;
-      tracingSvgLoading[key] = true;
-
-      // 1) Prefer embedded data URL (works offline / iPad / no Tracing folder)
-      if (TRACING_SVG_DATA[key]) {
-        loadSvgImage(TRACING_SVG_DATA[key], key, function (img) {
-          if (img) { onReady(img); return; }
-          tryFilePaths(key, onReady);
-        });
-        return;
-      }
-      tryFilePaths(key, onReady);
+      ensureTracingSvgExact(key, onReady);
     }
 
     function tryFilePaths(key, onReady) {
@@ -7157,6 +7591,35 @@
         y: (H - dh) / 2 + 8, // slight downshift under index label
         w: dw,
         h: dh
+      };
+    }
+
+    /** Side-by-side pair. Each letter is about 80% as tall as the single guide. */
+    function fitSvgPairRect(W, H, imgW, imgH, letter, slot) {
+      const padX = Math.max(52, W * 0.05);
+      const gap = Math.max(14, W * 0.045);
+      const colW = (W - padX * 2 - gap) / 2;
+      const maxH = H * 0.80;
+      let scale = Math.min(colW / imgW, maxH / imgH);
+      const ch = (letter || '').toString();
+      if (ch && ch === ch.toLowerCase() && SVG_LOWER_SCALE_BOOST[ch]) {
+        scale = Math.min(scale * SVG_LOWER_SCALE_BOOST[ch], colW / imgW, maxH / imgH);
+      }
+      const dw = imgW * scale;
+      const dh = imgH * scale;
+      const colLeft = padX + slot * (colW + gap);
+      return {
+        x: colLeft + (colW - dw) / 2,
+        y: (H - dh) / 2 + 4,
+        w: dw,
+        h: dh
+      };
+    }
+
+    function svgGuidePixelSize(img) {
+      return {
+        w: Math.max(img.naturalWidth || img.width || 580, 1),
+        h: Math.max(img.naturalHeight || img.height || 620, 1)
       };
     }
 
@@ -7264,7 +7727,66 @@
       return cnv;
     }
 
+    function drawSvgGuideImage(ctx, img, letter, rect) {
+      const src = (tracingBgMode === 'dark') ? prepareSvgContrastGuide(img, letter) : img;
+      ctx.drawImage(src, rect.x, rect.y, rect.w, rect.h);
+    }
+
+    function drawSvgDoubleGuides(ctx, W, H) {
+      const ch = (tracingWord || 'a').toString().charAt(0);
+      const upper = ch.toUpperCase();
+      const lower = ch.toLowerCase();
+      const imgU = tracingSvgCache[upper];
+      const imgL = tracingSvgCache[lower];
+      const failU = tracingSvgCache[upper] === null;
+      const failL = tracingSvgCache[lower] === null;
+
+      function redrawWhenReady() {
+        if (tracingMode !== 'svg' || !tracingSvgDouble) return;
+        setTimeout(function () {
+          if (tracingMode !== 'svg' || !tracingSvgDouble) return;
+          if (tracingStrokes.length > 0) replayStrokes();
+          else drawTracingPage();
+        }, 0);
+      }
+
+      if ((!imgU && !failU) || (!imgL && !failL)) {
+        if (!imgU && !failU) ensureTracingSvgExact(upper, redrawWhenReady);
+        if (!imgL && !failL) ensureTracingSvgExact(lower, redrawWhenReady);
+        ctx.save();
+        ctx.fillStyle = '#8b6f47';
+        ctx.font = '600 15px Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('Loading ' + upper + lower + '…', W / 2, H / 2);
+        ctx.restore();
+        return;
+      }
+
+      let pairH = 0;
+      let singleH = 0;
+      if (imgU) {
+        const sz = svgGuidePixelSize(imgU);
+        const r = fitSvgPairRect(W, H, sz.w, sz.h, upper, 0);
+        const single = getSvgGuideRect(W, H, sz.w, sz.h, upper);
+        pairH = r.h;
+        singleH = single.h;
+        try { drawSvgGuideImage(ctx, imgU, upper, r); } catch (e) {}
+      }
+      if (imgL) {
+        const sz = svgGuidePixelSize(imgL);
+        const r = fitSvgPairRect(W, H, sz.w, sz.h, lower, 1);
+        try { drawSvgGuideImage(ctx, imgL, lower, r); } catch (e) {}
+      }
+      if (singleH > 1 && pairH > 1) tracingSvgPenScale = pairH / singleH;
+    }
+
     function drawSvgGuideOnCanvas(ctx, W, H) {
+      if (tracingSvgDouble) {
+        drawSvgDoubleGuides(ctx, W, H);
+        return;
+      }
+      tracingSvgPenScale = 0;
       const letter = svgLetterKey(tracingWord || 'a');
       const img = tracingSvgCache[letter];
 
@@ -7355,24 +7877,22 @@
         ctx.stroke();
       }
 
-      // Index — SVG: top-left inside page; other modes: top-centre
-      const listForCount = usesAlphabetList() ? ALPHABET_LIST : tracingWordList;
-      const curIdx = usesAlphabetList() ? alphabetIndex : tracingWordIndex;
-      if (listForCount.length > 0) {
-        const label = `${curIdx + 1} / ${listForCount.length}`;
-        ctx.save();
-        ctx.font         = `600 13px Arial, sans-serif`;
-        ctx.fillStyle    = svgContrast ? '#6e655c' : '#b0a898';
-        ctx.textBaseline = 'top';
-        if (tracingMode === 'svg') {
-          ctx.textAlign = 'left';
-          const indexX = tracingTtsOn ? 88 : 14;
-          ctx.fillText(label, indexX, 12);
-        } else {
+      // Index — SVG uses the HTML label at the top center. Other modes stay on the canvas.
+      if (tracingMode === 'svg') {
+        if (typeof updateTracingSvgIndex === 'function') updateTracingSvgIndex();
+      } else {
+        const listForCount = usesAlphabetList() ? ALPHABET_LIST : tracingWordList;
+        const curIdx = usesAlphabetList() ? alphabetIndex : tracingWordIndex;
+        if (listForCount.length > 0) {
+          const label = `${curIdx + 1} / ${listForCount.length}`;
+          ctx.save();
+          ctx.font         = `600 13px Arial, sans-serif`;
+          ctx.fillStyle    = '#b0a898';
+          ctx.textBaseline = 'top';
           ctx.textAlign = 'center';
           ctx.fillText(label, W / 2, 7);
+          ctx.restore();
         }
-        ctx.restore();
       }
 
       // ── SVG mode: white page + stroke-order guide only (no lined notepad) ──
@@ -7507,6 +8027,18 @@
       ctx.closePath();
     }
 
+    function tracingClientToCanvas(canvas, clientX, clientY) {
+      const rect = canvas.getBoundingClientRect();
+      const page = document.getElementById('tracingPage');
+      if (page && page.classList.contains('svg-double-land') && rect.width > 1 && rect.height > 1) {
+        return {
+          x: (clientY - rect.top) * (canvas.clientWidth / rect.height),
+          y: (rect.right - clientX) * (canvas.clientHeight / rect.width)
+        };
+      }
+      return { x: clientX - rect.left, y: clientY - rect.top };
+    }
+
     function wireTracingEvents(canvas) {
       // Remove old listeners by cloning
       const fresh = canvas.cloneNode(true);
@@ -7518,8 +8050,7 @@
       drawTracingPage();
 
       function getPosFromClient(clientX, clientY) {
-        const rect = c.getBoundingClientRect();
-        return { x: clientX - rect.left, y: clientY - rect.top };
+        return tracingClientToCanvas(c, clientX, clientY);
       }
       function getDrawTouch(e) {
         if (!e.touches) return e;
@@ -8146,6 +8677,11 @@
       if (saved === '1' || saved === '2') letterLinesLayout = saved;
     } catch (e) {}
 
+    let letterGuidesOn = true;
+    try {
+      if (localStorage.getItem('flashabc-letter-guides') === '0') letterGuidesOn = false;
+    } catch (e) {}
+
     function toggleLetterLinesGear(ev) {
       if (ev) ev.stopPropagation();
       const dd = document.getElementById('letterLinesGear');
@@ -8161,11 +8697,58 @@
     }
 
     function setLetterLinesLayout(which) {
-      letterLinesLayout = which === '2' ? '2' : '1';
+      const next = which === '2' ? '2' : '1';
+      const changed = next !== letterLinesLayout;
+      letterLinesLayout = next;
       try { localStorage.setItem('flashabc-letter-lines', letterLinesLayout); } catch (e) {}
       applyLetterLinesLayout();
       const dd = document.getElementById('letterLinesGear');
       if (dd) dd.classList.remove('open');
+      window._worksheetPdfBlob = null;
+      worksheetPdfPromise = null;
+      if (changed && typeof clearAllWorksheetInk === 'function') clearAllWorksheetInk();
+      if (typeof tracingMode !== 'undefined' && tracingMode === 'worksheet' && typeof isIosPrint === 'function' && isIosPrint()) {
+        prepareWorksheetPrintPdf();
+      }
+    }
+
+    function markLetterGuideParts() {
+      document.querySelectorAll('.letter-lines-1, .letter-lines-2').forEach(function (g) {
+        if (g.dataset.guidesMarked === '1') return;
+        g.dataset.guidesMarked = '1';
+        Array.prototype.forEach.call(g.children, function (el) {
+          if (el.tagName === 'line') {
+            el.classList.add('ws-guide-line');
+            return;
+          }
+          if (el.tagName !== 'g') return;
+          const black = el.querySelector('[style*="stroke:#1a1a1a"]');
+          const gray = el.querySelector('[style*="stroke:#c0c0c0"]');
+          el.classList.add(black && !gray ? 'ws-guide-model' : 'ws-guide-extra');
+        });
+      });
+    }
+
+    function applyLetterGuides() {
+      markLetterGuideParts();
+      document.querySelectorAll('.ws-guide-line').forEach(function (el) {
+        el.removeAttribute('display');
+      });
+      document.querySelectorAll('.ws-guide-extra').forEach(function (el) {
+        if (letterGuidesOn) el.removeAttribute('display');
+        else el.setAttribute('display', 'none');
+      });
+      const box = document.getElementById('letterGuidesCheck');
+      if (box) box.checked = letterGuidesOn;
+    }
+
+    function setLetterGuides(on) {
+      const next = !!on;
+      const changed = next !== letterGuidesOn;
+      letterGuidesOn = next;
+      try { localStorage.setItem('flashabc-letter-guides', letterGuidesOn ? '1' : '0'); } catch (e) {}
+      applyLetterGuides();
+      if (changed && typeof clearAllWorksheetInk === 'function') clearAllWorksheetInk();
       window._worksheetPdfBlob = null;
       worksheetPdfPromise = null;
       if (typeof tracingMode !== 'undefined' && tracingMode === 'worksheet' && typeof isIosPrint === 'function' && isIosPrint()) {
@@ -8187,6 +8770,7 @@
       const b2 = document.getElementById('letterLinesBtn2');
       if (b1) b1.classList.toggle('active', one);
       if (b2) b2.classList.toggle('active', !one);
+      applyLetterGuides();
     }
 
     document.addEventListener('click', function (e) {
@@ -8201,13 +8785,239 @@
       if (!wrap || tracingMode !== 'worksheet') return;
       const inch = 96;
       const sw = 8.5 * inch, sh = 11 * inch;
-      const scale = Math.min(wrap.clientWidth / sw, wrap.clientHeight / sh, 1);
+      // Grow to the notebook. No 1x cap, so a tall screen uses the space
+      // above and below the paper. Wide screens stay limited by the height
+      // so the whole sheet stays visible.
+      const scale = Math.min(wrap.clientWidth / sw, wrap.clientHeight / sh);
       const sheetIds = ['tracingWorksheetSheet'].concat(Object.keys(LETTER_SHEET_IDS).map(function (k) { return LETTER_SHEET_IDS[k]; }));
       sheetIds.forEach(function (id) {
         const sheet = document.getElementById(id);
         if (sheet) sheet.style.transform = 'scale(' + scale + ')';
       });
+      layoutWorksheetInk();
     }
+
+    // Worksheet ink: a digital pen draws; a finger or palm does not.
+    // The side arrows stay tappable with a hand because they sit above this layer.
+    // Highlighter, same see-through paint as the SVG tab. 5% under the
+    // 363 width (3.25 viewBox units).
+    const WORKSHEET_MARKER_UNITS = 3.0875;
+    const worksheetInkStore = {};
+    let worksheetInkPointerId = null;
+
+    function worksheetVisibleSheet() {
+      const id = LETTER_SHEET_IDS[worksheetSheet] || 'tracingWorksheetSheet';
+      return document.getElementById(id);
+    }
+
+    function worksheetInkWidth() {
+      const vbW = 183.67;
+      const vbH = 210.408;
+      const svg = document.getElementById('tracingWorksheetSvg');
+      const vis = worksheetVisibleSheet();
+      if (svg && vis && vis.offsetWidth) {
+        const r = svg.getBoundingClientRect();
+        if (r.width > 2 && r.height > 2) {
+          const painted = Math.min(r.width / vbW, r.height / vbH);
+          const scale = vis.getBoundingClientRect().width / vis.offsetWidth;
+          if (scale > 0) return (painted / scale) * WORKSHEET_MARKER_UNITS;
+        }
+      }
+      return ((7.5 * 96) / vbW) * WORKSHEET_MARKER_UNITS;
+    }
+
+    // Worksheet ink stays one color. SVG and Alphabet keep their own colors.
+    function worksheetInkColor() {
+      return '#0066FF';
+    }
+
+    function updateWorksheetInkButtons() {
+      const list = worksheetInkStore[worksheetSheet];
+      const has = !!(list && list.length);
+      const undo = document.getElementById('tracingWorksheetUndo');
+      const clear = document.getElementById('tracingWorksheetClear');
+      if (undo) undo.classList.toggle('is-idle', !has);
+      if (clear) clear.classList.toggle('is-idle', !has);
+    }
+
+    function undoWorksheetInk() {
+      const list = worksheetInkStore[worksheetSheet];
+      if (!list || !list.length) return;
+      list.pop();
+      worksheetInkStore._active = null;
+      worksheetInkPointerId = null;
+      paintWorksheetInk();
+    }
+
+    function clearWorksheetInk() {
+      worksheetInkStore[worksheetSheet] = [];
+      worksheetInkStore._active = null;
+      worksheetInkPointerId = null;
+      paintWorksheetInk();
+    }
+
+    function clearAllWorksheetInk() {
+      Object.keys(worksheetInkStore).forEach(function (k) { delete worksheetInkStore[k]; });
+      worksheetInkPointerId = null;
+      paintWorksheetInk();
+    }
+
+    function paintWorksheetInk() {
+      updateWorksheetInkButtons();
+      const canvas = document.getElementById('tracingWorksheetInk');
+      if (!canvas || !canvas.width) return;
+      const ctx = canvas.getContext('2d');
+      const dpr = window.devicePixelRatio || 1;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+      const strokes = worksheetInkStore[worksheetSheet] || [];
+      const w = worksheetInkWidth();
+      strokes.forEach(function (stroke) {
+        const pts = stroke && stroke.points;
+        if (!pts || !pts.length) return;
+        ctx.save();
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.globalAlpha = TRACING_STROKE_ALPHA;
+        ctx.strokeStyle = stroke.color;
+        ctx.fillStyle = stroke.color;
+        ctx.lineWidth = w;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        if (pts.length === 1) {
+          ctx.beginPath();
+          ctx.arc(pts[0].x, pts[0].y, w / 2, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          ctx.beginPath();
+          ctx.moveTo(pts[0].x, pts[0].y);
+          for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+          ctx.stroke();
+        }
+        ctx.restore();
+      });
+    }
+
+    function layoutWorksheetInk() {
+      const wrap = document.getElementById('tracingWorksheetWrap');
+      const canvas = document.getElementById('tracingWorksheetInk');
+      const sheet = worksheetVisibleSheet();
+      if (!wrap || !canvas) return;
+      if (tracingMode !== 'worksheet' || !sheet) {
+        canvas.style.display = 'none';
+        return;
+      }
+      const wr = wrap.getBoundingClientRect();
+      const sr = sheet.getBoundingClientRect();
+      if (sr.width < 2 || sr.height < 2) return;
+      canvas.style.display = 'block';
+      canvas.style.left = (sr.left - wr.left) + 'px';
+      canvas.style.top = (sr.top - wr.top) + 'px';
+      canvas.style.width = sr.width + 'px';
+      canvas.style.height = sr.height + 'px';
+      const dpr = window.devicePixelRatio || 1;
+      const bw = Math.max(1, Math.round(sheet.offsetWidth * dpr));
+      const bh = Math.max(1, Math.round(sheet.offsetHeight * dpr));
+      if (canvas.width !== bw || canvas.height !== bh) {
+        canvas.width = bw;
+        canvas.height = bh;
+      }
+      paintWorksheetInk();
+    }
+
+    function worksheetEventPoint(e) {
+      const sheet = worksheetVisibleSheet();
+      if (!sheet) return null;
+      const r = sheet.getBoundingClientRect();
+      if (r.width < 2 || r.height < 2) return null;
+      return {
+        x: (e.clientX - r.left) / r.width * sheet.offsetWidth,
+        y: (e.clientY - r.top) / r.height * sheet.offsetHeight
+      };
+    }
+
+    function worksheetInkIgnoreHand(e) {
+      if (tracingMode !== 'worksheet') return false;
+      if (e.pointerType === 'pen') return false;
+      e.preventDefault();
+      return true;
+    }
+
+    function onWorksheetInkDown(e) {
+      if (worksheetInkIgnoreHand(e)) return;
+      if (tracingMode !== 'worksheet' || e.pointerType !== 'pen') return;
+      const pt = worksheetEventPoint(e);
+      if (!pt) return;
+      e.preventDefault();
+      worksheetInkPointerId = e.pointerId;
+      if (!worksheetInkStore[worksheetSheet]) worksheetInkStore[worksheetSheet] = [];
+      const stroke = { color: worksheetInkColor(), points: [pt] };
+      worksheetInkStore[worksheetSheet].push(stroke);
+      worksheetInkStore._active = stroke;
+      try { e.currentTarget.setPointerCapture(e.pointerId); } catch (err) {}
+      paintWorksheetInk();
+    }
+
+    function onWorksheetInkMove(e) {
+      if (worksheetInkIgnoreHand(e)) return;
+      if (e.pointerType !== 'pen' || worksheetInkPointerId !== e.pointerId) return;
+      const stroke = worksheetInkStore._active;
+      if (!stroke || !stroke.points) return;
+      let events = [e];
+      if (e.getCoalescedEvents) {
+        const extra = e.getCoalescedEvents();
+        if (extra && extra.length) events = extra;
+      }
+      for (let i = 0; i < events.length; i++) {
+        const pt = worksheetEventPoint(events[i]);
+        if (pt) stroke.points.push(pt);
+      }
+      e.preventDefault();
+      paintWorksheetInk();
+    }
+
+    function onWorksheetInkUp(e) {
+      if (e.pointerType !== 'pen') {
+        if (tracingMode === 'worksheet') e.preventDefault();
+        return;
+      }
+      if (worksheetInkPointerId !== e.pointerId) return;
+      worksheetInkPointerId = null;
+      worksheetInkStore._active = null;
+      paintWorksheetInk();
+    }
+
+    function wireWorksheetInk() {
+      const canvas = document.getElementById('tracingWorksheetInk');
+      const wrap = document.getElementById('tracingWorksheetWrap');
+      if (!canvas || canvas.dataset.inkBound === '1') return;
+      canvas.dataset.inkBound = '1';
+      canvas.addEventListener('pointerdown', onWorksheetInkDown, { passive: false });
+      canvas.addEventListener('pointermove', onWorksheetInkMove, { passive: false });
+      canvas.addEventListener('pointerup', onWorksheetInkUp, { passive: false });
+      canvas.addEventListener('pointercancel', onWorksheetInkUp, { passive: false });
+      canvas.addEventListener('touchstart', function (ev) {
+        if (tracingMode !== 'worksheet') return;
+        const t = ev.touches && ev.touches[0];
+        if (t && t.touchType === 'stylus') return;
+        ev.preventDefault();
+      }, { passive: false });
+      canvas.addEventListener('touchmove', function (ev) {
+        if (tracingMode !== 'worksheet') return;
+        const t = ev.touches && ev.touches[0];
+        if (t && t.touchType === 'stylus') return;
+        ev.preventDefault();
+      }, { passive: false });
+      if (wrap) {
+        wrap.addEventListener('pointerdown', function (ev) {
+          worksheetInkIgnoreHand(ev);
+        }, { passive: false });
+        wrap.addEventListener('pointermove', function (ev) {
+          if (tracingMode !== 'worksheet' || ev.pointerType === 'pen') return;
+          ev.preventDefault();
+        }, { passive: false });
+      }
+    }
+    wireWorksheetInk();
 
     const LETTER_SHEET_PAGE = {
       'letter': 'letter-sheet',
@@ -8550,6 +9360,10 @@
 
       const page = document.getElementById('tracingPage');
       if (page) page.classList.toggle('worksheet-mode', active === 'worksheet');
+      if (active !== 'worksheet') {
+        const gear = document.getElementById('letterLinesGear');
+        if (gear) gear.classList.remove('open');
+      }
 
       setTabButtonActive(manBtn, active === 'manual');
       setTabButtonActive(alpBtn, active === 'alphabet');
@@ -8560,6 +9374,8 @@
       const ttsToggle = document.getElementById('tracingTtsToggle');
       if (ttsToggle) ttsToggle.style.display = active === 'svg' ? 'flex' : 'none';
       if (typeof applyTracingBgTheme === 'function') applyTracingBgTheme();
+      if (typeof applyTracingDoubleLayout === 'function') applyTracingDoubleLayout();
+      if (typeof syncTracingDoubleBtn === 'function') syncTracingDoubleBtn();
       if (typeof positionTracingSpeakBtn === 'function') positionTracingSpeakBtn();
       if (typeof cancelTracingSpeech === 'function') cancelTracingSpeech();
 
@@ -8577,6 +9393,7 @@
         const wheel = document.getElementById('tracingWheelWrap');
         if (wheel) wheel.style.display = '';
         if (caseBtn) caseBtn.style.display = 'none';
+        if (typeof positionTracingSvgCaseToggle === 'function') positionTracingSvgCaseToggle();
         const undo = document.getElementById('tracingUndoBtn');
         if (undo) undo.style.display = 'none';
         setTimeout(layoutTracingWorksheet, 40);
@@ -8591,17 +9408,10 @@
         if (shuffleDIY)   shuffleDIY.style.display   = 'none';
         if (shuffleAlpha) shuffleAlpha.style.display  = 'flex';
         if (caseBtn) {
-          if (active === 'svg') {
-            // SVG: A / a toggle for uppercase vs lowercase guides
-            caseBtn.style.display = '';
-            caseBtn.disabled = false;
-            caseBtn.style.opacity = '1';
-            caseBtn.style.cursor = 'pointer';
-            caseBtn.textContent = tracingSvgUpper ? 'A' : 'a';
-          } else {
-            caseBtn.style.display = 'none';
-          }
+          // SVG case lives on the lock row. Hide the small toolbar A/a button.
+          caseBtn.style.display = 'none';
         }
+        if (typeof positionTracingSvgCaseToggle === 'function') positionTracingSvgCaseToggle();
         resetShuffle();
       } else {
         paintWorksheetSheetSwitch();
@@ -8610,7 +9420,15 @@
         if (wheel) wheel.style.display = '';
         if (wordLbl) wordLbl.style.display = '';
         if (wordInp) wordInp.style.display = '';
-        if (caseBtn) { caseBtn.style.display = ''; caseBtn.disabled = false; caseBtn.style.opacity = '1'; caseBtn.style.cursor = 'pointer'; }
+        if (caseBtn) {
+          caseBtn.style.display = '';
+          caseBtn.disabled = false;
+          caseBtn.style.opacity = '1';
+          caseBtn.style.cursor = 'pointer';
+          const labels = ['aa', 'AA', 'Aa'];
+          caseBtn.textContent = labels[tracingCaseMode] || 'aa';
+        }
+        if (typeof positionTracingSvgCaseToggle === 'function') positionTracingSvgCaseToggle();
         if (addBtn) addBtn.style.display = 'flex';
         if (shuffleDIY)   shuffleDIY.style.display  = tracingWordList.length > 0 ? 'flex' : 'none';
         if (shuffleAlpha) shuffleAlpha.style.display = 'none';
@@ -9238,8 +10056,16 @@
     document.head.appendChild(wheelStyle);
     window.addEventListener('resize', () => {
       if (document.getElementById('tracingPage').style.display !== 'none') {
+        if (typeof applyTracingDoubleLayout === 'function') applyTracingDoubleLayout();
         setTimeout(setupTracingCanvas, 100);
         setTimeout(layoutTracingWorksheet, 120);
+      }
+    });
+    window.addEventListener('orientationchange', () => {
+      if (document.getElementById('tracingPage').style.display !== 'none') {
+        if (typeof applyTracingDoubleLayout === 'function') applyTracingDoubleLayout();
+        setTimeout(setupTracingCanvas, 160);
+        setTimeout(layoutTracingWorksheet, 180);
       }
     });
     document.addEventListener('visibilitychange', function() {
