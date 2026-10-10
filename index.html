@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="flashabc-build" content="383">
+<meta name="flashabc-build" content="386">
 
 <!-- Standalone Home Screen web app (iOS / iPadOS / Android) -->
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1738,6 +1738,12 @@
       height: 34px;
     }
     #tracingPage.worksheet-mode[class*="letter-sheet"] #letterLinesGear { display: inline-block; }
+    #customRowsGear { display: none; }
+    #customRowsGear .settings-btn {
+      width: 34px;
+      height: 34px;
+    }
+    #tracingPage.worksheet-mode.ws-custom #customRowsGear { display: inline-block; }
     #tracingPrintBtn {
       display: none;
       background: transparent;
@@ -2142,7 +2148,7 @@
 
   <!-- ── Letter Tracing Page ── -->
   <div id="tracingPage" style="display:none;position:fixed;inset:0;z-index:50000;background:#fdf8f0;flex-direction:column;overflow:hidden;">
-    <div id="flashabcBuildBadge" style="position:absolute;right:8px;bottom:6px;z-index:60;font:600 10px/1 Arial,sans-serif;color:#b0a898;opacity:0.85;pointer-events:none;">build 383</div>
+    <div id="flashabcBuildBadge" style="position:absolute;right:8px;bottom:6px;z-index:60;font:600 10px/1 Arial,sans-serif;color:#b0a898;opacity:0.85;pointer-events:none;">build 386</div>
 
     <!-- Single combined header row: back | centred tabs | controls -->
     <div style="display:flex;align-items:flex-end;padding:8px 12px 0;background:#8b6f47;flex-shrink:0;">
@@ -2255,6 +2261,24 @@
 
       <!-- Spacer -->
       <div style="flex:1;"></div>
+      <div class="settings-dropdown" id="customRowsGear">
+        <button class="settings-btn" type="button" onclick="toggleCustomRowsGear(event)" aria-label="Practice lines" title="Practice lines">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+        </button>
+        <div class="settings-panel" id="customRowsPanel">
+          <div class="settings-title">Practice lines</div>
+          <div class="settings-row">
+            <span class="settings-label">Rows</span>
+            <span style="display:flex;gap:6px;">
+              <button type="button" class="settings-toggle-btn" id="customRowsBtn6" onclick="setCustomRowLayout('6')">6 rows</button>
+              <button type="button" class="settings-toggle-btn active" id="customRowsBtn4" onclick="setCustomRowLayout('4')">4 rows</button>
+            </span>
+          </div>
+        </div>
+      </div>
       <div class="settings-dropdown" id="letterLinesGear">
         <button class="settings-btn" type="button" onclick="toggleLetterLinesGear(event)" aria-label="Practice lines" title="Practice lines">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -4715,7 +4739,7 @@
       '#666666', // Gray
     ];
     // Build stamp — check Settings/About or window.FLASHABC_BUILD if Safari looks stale
-    const FLASHABC_BUILD = '383';
+    const FLASHABC_BUILD = '386';
     window.FLASHABC_BUILD = FLASHABC_BUILD;
     // Alphabet tab highlighter width (fixed)
     const TRACING_STROKE_WIDTH = 54;
@@ -5612,20 +5636,10 @@
     let customSheetLandscape = false;
     let customOrientReady = false;
     const customGlyphCache = {};
-    const CUSTOM_WORD_GAP = 4.4;
-    const CUSTOM_WORD_SPACE = 9;
     const CUSTOM_TX = 12.397207;
     const CUSTOM_TY = 15.740594;
     const CUSTOM_LINE_LEFT = 3.2;
     const CUSTOM_LINE_RIGHT = 180.6;
-    const CUSTOM_ROWS = [
-      { base: 24.764 },
-      { base: 60.855 },
-      { base: 96.948 },
-      { base: 133.041 },
-      { base: 169.134 },
-      { base: 205.232 }
-    ];
     const CUSTOM_SVG_NS = 'http://www.w3.org/2000/svg';
     const CUSTOM_PORT_VB = '-0.225 0 183.67 210.408';
     const CUSTOM_LAND_VB = '-0.225 0 244.893 175.29';
@@ -5633,16 +5647,107 @@
     const CUSTOM_LAND_RIGHT = 241.82;
     const CUSTOM_GROUP_X = -12.397207;
     const CUSTOM_GROUP_Y = -15.740594;
+    const CUSTOM_PORT_X0 = 0.01;
+    const CUSTOM_PORT_X1 = 181.25;
     const CUSTOM_LAND_X0 = 0.01;
     const CUSTOM_LAND_X1 = 242.473;
-    const CUSTOM_LAND_LINES = [
-      ['customRed6', 0.915], ['customRed7', 12.865], ['customRed8', 24.764],
-      ['customRed9', 37.006], ['customRed10', 48.955], ['customRed11', 60.855],
-      ['customRed12', 73.099], ['customRed13', 85.049], ['customRed14', 96.948],
-      ['customRed15', 109.192], ['customRed16', 121.141], ['customRed17', 133.041],
-      ['customRed5', 145.285], ['customRed4', 157.235], ['customRed0', 169.134]
-    ];
+    const CUSTOM_ROW_PRESETS = {
+      '6': {
+        scale: 1,
+        gap: 4.4,
+        space: 9,
+        landBands: 5,
+        rows: [24.764, 60.855, 96.948, 133.041, 169.134, 205.232],
+        lines: [
+          ['customRed6', 0.915], ['customRed7', 12.865], ['customRed8', 24.764],
+          ['customRed9', 37.006], ['customRed10', 48.955], ['customRed11', 60.855],
+          ['customRed12', 73.099], ['customRed13', 85.049], ['customRed14', 96.948],
+          ['customRed15', 109.192], ['customRed16', 121.141], ['customRed17', 133.041],
+          ['customRed5', 145.285], ['customRed4', 157.235], ['customRed0', 169.134],
+          ['customRed1', 181.383], ['customRed2', 193.332], ['customRed3', 205.232]
+        ]
+      },
+      '4': {
+        scale: 1.5,
+        gap: 6.6,
+        space: 13.5,
+        landBands: 3,
+        rows: [36.689, 90.825, 144.962, 199.098],
+        lines: [
+          ['customRed6', 0.915], ['customRed7', 18.840], ['customRed8', 36.689],
+          ['customRed9', 55.052], ['customRed10', 72.977], ['customRed11', 90.825],
+          ['customRed12', 109.188], ['customRed13', 127.113], ['customRed14', 144.962],
+          ['customRed15', 163.325], ['customRed16', 181.250], ['customRed17', 199.098]
+        ]
+      }
+    };
+    let customRowLayout = '4';
+    try {
+      const savedCustomRows = localStorage.getItem('flashabc-custom-rows');
+      if (savedCustomRows === '6' || savedCustomRows === '4') customRowLayout = savedCustomRows;
+    } catch (e) {}
     let customGuideSaved = null;
+
+    function customPreset() {
+      return CUSTOM_ROW_PRESETS[customRowLayout] || CUSTOM_ROW_PRESETS['4'];
+    }
+
+    function customGlyphScale() {
+      return customPreset().scale;
+    }
+
+    function customWordGap() {
+      return customPreset().gap;
+    }
+
+    function customWordSpace() {
+      return customPreset().space;
+    }
+
+    function paintCustomRowButtons() {
+      const b6 = document.getElementById('customRowsBtn6');
+      const b4 = document.getElementById('customRowsBtn4');
+      if (b6) b6.classList.toggle('active', customRowLayout === '6');
+      if (b4) b4.classList.toggle('active', customRowLayout === '4');
+    }
+
+    function toggleCustomRowsGear(ev) {
+      if (ev) ev.stopPropagation();
+      const dd = document.getElementById('customRowsGear');
+      if (!dd) return;
+      dd.classList.toggle('open');
+      const panel = document.getElementById('customRowsPanel');
+      if (dd.classList.contains('open') && panel && typeof clampPanelToViewport === 'function') {
+        panel.style.transform = '';
+        requestAnimationFrame(function () { clampPanelToViewport(panel, 10); });
+      } else if (panel) {
+        panel.style.transform = '';
+      }
+    }
+
+    function setCustomRowLayout(which) {
+      const next = which === '6' ? '6' : '4';
+      const changed = next !== customRowLayout;
+      customRowLayout = next;
+      try { localStorage.setItem('flashabc-custom-rows', customRowLayout); } catch (e) {}
+      paintCustomRowButtons();
+      const dd = document.getElementById('customRowsGear');
+      if (dd) dd.classList.remove('open');
+      if (!changed) return;
+      Object.keys(customGlyphCache).forEach(function (k) { delete customGlyphCache[k]; });
+      applyCustomGuideFrame(!!customSheetLandscape);
+      worksheetInkStore.custom = [];
+      if (worksheetSheet === 'custom') {
+        worksheetInkStore._active = null;
+        worksheetInkPointerId = null;
+      }
+      window._worksheetPdfBlob = null;
+      worksheetPdfPromise = null;
+      applyCustomWordInput(customWord);
+      if (typeof paintWorksheetInk === 'function') paintWorksheetInk();
+      if (tracingMode === 'worksheet') layoutTracingWorksheet();
+      if (tracingMode === 'worksheet' && typeof isIosPrint === 'function' && isIosPrint()) prepareWorksheetPrintPdf();
+    }
 
     function customDeviceIsLandscape() {
       const ua = navigator.userAgent || '';
@@ -5660,7 +5765,11 @@
     }
 
     function customRows() {
-      return customSheetLandscape ? CUSTOM_ROWS.slice(0, 5) : CUSTOM_ROWS;
+      const preset = customPreset();
+      const n = customSheetLandscape ? preset.landBands : preset.rows.length;
+      const out = [];
+      for (let i = 0; i < n; i++) out.push({ base: preset.rows[i] });
+      return out;
     }
 
     function rememberCustomGuides() {
@@ -5700,43 +5809,34 @@
       if (!svg || !customGuideSaved) return;
       const clip = document.querySelector('#customPageClip rect');
       if (!land) {
-        const savedSvg = customGuideSaved._svg;
-        if (savedSvg) {
-          svg.setAttribute('viewBox', savedSvg.vb || CUSTOM_PORT_VB);
-          if (savedSvg.w) svg.setAttribute('width', savedSvg.w);
-          if (savedSvg.h) svg.setAttribute('height', savedSvg.h);
+        svg.setAttribute('viewBox', CUSTOM_PORT_VB);
+        svg.setAttribute('width', '183.67mm');
+        svg.setAttribute('height', '210.408mm');
+        if (clip) {
+          const savedClip = customGuideSaved._clip;
+          clip.setAttribute('x', (savedClip && savedClip.x) || '0');
+          clip.setAttribute('y', (savedClip && savedClip.y) || '0');
+          clip.setAttribute('width', (savedClip && savedClip.w) || '210');
+          clip.setAttribute('height', (savedClip && savedClip.h) || '297');
         }
-        const savedClip = customGuideSaved._clip;
-        if (clip && savedClip) {
-          if (savedClip.x) clip.setAttribute('x', savedClip.x);
-          if (savedClip.y) clip.setAttribute('y', savedClip.y);
-          clip.setAttribute('width', savedClip.w);
-          clip.setAttribute('height', savedClip.h);
+      } else {
+        svg.setAttribute('viewBox', CUSTOM_LAND_VB);
+        svg.setAttribute('width', '244.893mm');
+        svg.setAttribute('height', '175.29mm');
+        if (clip) {
+          clip.setAttribute('x', '-80');
+          clip.setAttribute('y', '-80');
+          clip.setAttribute('width', '500');
+          clip.setAttribute('height', '500');
         }
-        for (let i = 0; i < 36; i++) {
-          const id = 'customRed' + i;
-          const el = document.getElementById(id);
-          const saved = customGuideSaved[id];
-          if (!el || !saved) continue;
-          if (saved.d) el.setAttribute('d', saved.d);
-          if (saved.transform) el.setAttribute('transform', saved.transform);
-          else el.removeAttribute('transform');
-          if (saved.display) el.setAttribute('display', saved.display);
-          else el.removeAttribute('display');
-        }
-        return;
       }
-      svg.setAttribute('viewBox', CUSTOM_LAND_VB);
-      svg.setAttribute('width', '244.893mm');
-      svg.setAttribute('height', '175.29mm');
-      if (clip) {
-        clip.setAttribute('x', '-80');
-        clip.setAttribute('y', '-80');
-        clip.setAttribute('width', '500');
-        clip.setAttribute('height', '500');
-      }
+      const x0 = land ? CUSTOM_LAND_X0 : CUSTOM_PORT_X0;
+      const x1 = land ? CUSTOM_LAND_X1 : CUSTOM_PORT_X1;
+      const preset = customPreset();
+      const nLines = (land ? preset.landBands : preset.rows.length) * 3;
       const keep = {};
-      for (let b = 0; b < CUSTOM_LAND_LINES.length; b++) keep[CUSTOM_LAND_LINES[b][0]] = CUSTOM_LAND_LINES[b][1];
+      for (let b = 0; b < nLines; b++) keep[preset.lines[b][0]] = preset.lines[b][1];
+      paintCustomRowButtons();
       for (let i = 0; i < 36; i++) {
         const el = document.getElementById('customRed' + i);
         if (!el) continue;
@@ -5746,8 +5846,8 @@
           continue;
         }
         el.removeAttribute('display');
-        const lx0 = CUSTOM_LAND_X0 - CUSTOM_GROUP_X;
-        const lx1 = CUSTOM_LAND_X1 - CUSTOM_GROUP_X;
+        const lx0 = x0 - CUSTOM_GROUP_X;
+        const lx1 = x1 - CUSTOM_GROUP_X;
         const ly = py - CUSTOM_GROUP_Y;
         el.setAttribute('d', 'M ' + lx0.toFixed(3) + ' ' + ly.toFixed(3) + ' H ' + lx1.toFixed(3));
         el.removeAttribute('transform');
@@ -6027,7 +6127,7 @@
       const g = document.createElementNS(CUSTOM_SVG_NS, 'g');
       const c = document.createElementNS(CUSTOM_SVG_NS, 'circle');
       c.setAttribute('cx', '0.9');
-      c.setAttribute('cy', '1.05');
+      c.setAttribute('cy', '-0.7');
       c.setAttribute('r', '0.7');
       c.setAttribute('fill', '#c0c0c0');
       c.setAttribute('stroke', 'none');
@@ -6058,6 +6158,31 @@
       return g;
     }
 
+    function scaleCustomGlyph(g, anchorX, anchorY) {
+      const scaled = document.createElementNS(CUSTOM_SVG_NS, 'g');
+      scaled.setAttribute('transform', 'translate(' + anchorX + ',' + anchorY + ') scale(' + customGlyphScale() + ') translate(' + (-anchorX) + ',' + (-anchorY) + ')');
+      scaled.appendChild(g);
+      return scaled;
+    }
+
+    function measureCustomBox(host, g, anchorY) {
+      const wrap = document.createElementNS(CUSTOM_SVG_NS, 'g');
+      wrap.setAttribute('visibility', 'hidden');
+      wrap.appendChild(g);
+      host.appendChild(wrap);
+      const raw = wrap.getBBox();
+      if (!(raw.height > 0.2) && !(raw.width > 0.2)) {
+        host.removeChild(wrap);
+        return null;
+      }
+      const y = anchorY == null ? (raw.y + raw.height) : anchorY;
+      const scaled = scaleCustomGlyph(g, raw.x, y);
+      wrap.appendChild(scaled);
+      const bb = wrap.getBBox();
+      host.removeChild(wrap);
+      return { g: scaled, bb: bb };
+    }
+
     function measureCustomGlyph(ch) {
       if (customGlyphCache[ch]) return customGlyphCache[ch];
       const host = document.getElementById('customWordGlyphs');
@@ -6077,18 +6202,13 @@
         g = cloneLetterShapes(model);
         oy = customModelOy(model);
       }
-      const wrap = document.createElementNS(CUSTOM_SVG_NS, 'g');
-      wrap.setAttribute('visibility', 'hidden');
-      wrap.appendChild(g);
-      host.appendChild(wrap);
-      const bb = wrap.getBBox();
-      host.removeChild(wrap);
-      if (!(bb.height > 0.2) && !(bb.width > 0.2)) return null;
+      const measured = measureCustomBox(host, g, special ? 0 : (CUSTOM_TY - oy));
+      if (!measured) return null;
       let sw = 1;
-      const shape = g.querySelector('path, ellipse, circle');
+      const shape = measured.g.querySelector('path, ellipse, circle');
       if (shape) sw = parseFloat(shape.style.strokeWidth || shape.getAttribute('stroke-width') || '1') || 1;
-      const width = Math.max(bb.width, sw + 0.4);
-      const rec = { g: g, bb: bb, oy: oy, special: special, width: width };
+      const width = Math.max(measured.bb.width, (sw + 0.4) * customGlyphScale());
+      const rec = { g: measured.g, bb: measured.bb, oy: oy, special: special, width: width };
       customGlyphCache[ch] = rec;
       return rec;
     }
@@ -6097,15 +6217,10 @@
       if (customGlyphCache['.']) return customGlyphCache['.'];
       const host = document.getElementById('customWordGlyphs');
       if (!host) return null;
-      const g = makeCustomPeriod();
-      const wrap = document.createElementNS(CUSTOM_SVG_NS, 'g');
-      wrap.setAttribute('visibility', 'hidden');
-      wrap.appendChild(g);
-      host.appendChild(wrap);
-      const bb = wrap.getBBox();
-      host.removeChild(wrap);
-      const width = Math.max(bb.width || 0, 1.6);
-      const rec = { g: g, bb: bb, oy: 0, special: true, width: width };
+      const measured = measureCustomBox(host, makeCustomPeriod(), 0);
+      if (!measured) return null;
+      const width = Math.max(measured.bb.width || 0, 1.6 * customGlyphScale());
+      const rec = { g: measured.g, bb: measured.bb, oy: 0, special: true, width: width };
       customGlyphCache['.'] = rec;
       return rec;
     }
@@ -6129,13 +6244,13 @@
       for (let i = 0; i < seq.length; i++) {
         const ch = seq[i];
         if (ch === ' ') {
-          x += CUSTOM_WORD_SPACE;
+          x += customWordSpace();
           prevGlyph = false;
           continue;
         }
         const rec = ch === '.' ? measureCustomPeriod() : measureCustomGlyph(ch);
         if (!rec) continue;
-        if (prevGlyph) x += CUSTOM_WORD_GAP;
+        if (prevGlyph) x += customWordGap();
         placeCustomGlyph(host, rec, x, 0, true);
         x += rec.width;
         prevGlyph = true;
@@ -6148,7 +6263,7 @@
       for (let i = 0; i < word.length; i++) {
         const rec = measureCustomGlyph(word.charAt(i));
         if (!rec) return null;
-        if (parts.length) width += CUSTOM_WORD_GAP;
+        if (parts.length) width += customWordGap();
         width += rec.width;
         parts.push(rec);
       }
@@ -6188,11 +6303,11 @@
 
       function placeParts(parts) {
         for (let p = 0; p < parts.length; p++) {
-          if (p) x += CUSTOM_WORD_GAP;
+          if (p) x += customWordGap();
           placeCustomGlyph(host, parts[p], x, row, false);
           x += parts[p].width;
         }
-        if (parts.length) x += CUSTOM_WORD_GAP;
+        if (parts.length) x += customWordGap();
       }
 
       let i = 0;
@@ -6213,7 +6328,7 @@
           const nextWord = raw.slice(i + 1, wordEnd);
           const nextMeasured = nextWord ? measureCustomWord(nextWord) : null;
           const wordW = nextMeasured ? nextMeasured.width : 0;
-          const need = CUSTOM_WORD_SPACE + (nextWord ? wordW : 0);
+          const need = customWordSpace() + (nextWord ? wordW : 0);
           if (x > left + 0.1 && x + need > right + 0.01) {
             if (row + 1 >= maxRow) { stopped = true; break; }
             row++;
@@ -6229,7 +6344,7 @@
             posToRaw[posToRaw.length - 1] = accepted;
             continue;
           }
-          x += CUSTOM_WORD_SPACE;
+          x += customWordSpace();
           i++;
           accepted = i;
           pushShown(' ', accepted);
@@ -6256,7 +6371,7 @@
         }
         for (let k = wordStart; k < j; k++) {
           const rec = measured.parts[k - wordStart];
-          const gap = x > left + 0.1 ? CUSTOM_WORD_GAP : 0;
+          const gap = x > left + 0.1 ? customWordGap() : 0;
           if (gap && x + gap + rec.width > right + 0.01) {
             if (row + 1 >= maxRow) { stopped = true; break; }
             row++;
@@ -6264,14 +6379,14 @@
             pushShown('\n', k);
           }
           if (x + rec.width > right + 0.01) { stopped = true; break; }
-          if (x > left + 0.1) x += CUSTOM_WORD_GAP;
+          if (x > left + 0.1) x += customWordGap();
           placeCustomGlyph(host, rec, x, row, false);
           x += rec.width;
           accepted = k + 1;
           pushShown(raw.charAt(k), accepted);
         }
         if (stopped) break;
-        x += CUSTOM_WORD_GAP;
+        x += customWordGap();
         i = j;
       }
       customEditorShown = raw;
@@ -8072,6 +8187,8 @@
     document.addEventListener('click', function (e) {
       const dd = document.getElementById('letterLinesGear');
       if (dd && !dd.contains(e.target)) dd.classList.remove('open');
+      const customGear = document.getElementById('customRowsGear');
+      if (customGear && !customGear.contains(e.target)) customGear.classList.remove('open');
     });
 
     let worksheetSheet = 'alphabet';
@@ -8431,6 +8548,14 @@
         else if (LETTER_SHEET_PAGE[worksheetSheet]) page.classList.add(LETTER_SHEET_PAGE[worksheetSheet]);
         page.classList.toggle('ws-custom-land', worksheetSheet === 'custom' && customSheetLandscape);
       }
+      if (worksheetSheet !== 'custom') {
+        const customGear = document.getElementById('customRowsGear');
+        if (customGear) customGear.classList.remove('open');
+      }
+      if (!LETTER_SHEET_PAGE[worksheetSheet]) {
+        const letterGear = document.getElementById('letterLinesGear');
+        if (letterGear) letterGear.classList.remove('open');
+      }
       syncCustomPrintBox();
       window._worksheetPdfBlob = null;
       worksheetPdfPromise = null;
@@ -8676,6 +8801,8 @@
       if (active !== 'worksheet') {
         const gear = document.getElementById('letterLinesGear');
         if (gear) gear.classList.remove('open');
+        const customGear = document.getElementById('customRowsGear');
+        if (customGear) customGear.classList.remove('open');
       }
 
       setTabButtonActive(manBtn, active === 'manual');
