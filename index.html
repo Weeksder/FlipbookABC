@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="flashabc-build" content="386">
+<meta name="flashabc-build" content="390">
 
 <!-- Standalone Home Screen web app (iOS / iPadOS / Android) -->
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -4739,7 +4739,7 @@
       '#666666', // Gray
     ];
     // Build stamp — check Settings/About or window.FLASHABC_BUILD if Safari looks stale
-    const FLASHABC_BUILD = '386';
+    const FLASHABC_BUILD = '390';
     window.FLASHABC_BUILD = FLASHABC_BUILD;
     // Alphabet tab highlighter width (fixed)
     const TRACING_STROKE_WIDTH = 54;
@@ -4752,6 +4752,9 @@
     // Capital-M stem fraction of em size (Comic Sans / Chalkboard-style fill)
     // Used so SVG pen matches the visual boundary weight of Alphabet-tab "M"
     const TRACING_ALPHABET_M_STEM_RATIO = 0.14;
+    // Previous SVG-tab highlighter (builds 283–284) before M-stem matching.
+    // Portrait uppercase restores this weight relative to Alphabet 54.
+    const TRACING_STROKE_WIDTH_SVG_UPPER = 78;
 
     function getTracingStrokeWidth() {
       const canvas = document.getElementById('tracingCanvas');
@@ -4760,7 +4763,7 @@
       // SVG tab: match Alphabet capital-M stem thickness at current canvas size
       if (typeof tracingMode !== 'undefined' && tracingMode === 'svg') {
         if (!canvas || typeof getTracingLines !== 'function') {
-          return TRACING_STROKE_WIDTH;
+          return tracingSvgUpper ? TRACING_STROKE_WIDTH_SVG_UPPER : TRACING_STROKE_WIDTH;
         }
         const H = canvas.height / dpr;
         const lines = getTracingLines(H, 2);
@@ -4772,6 +4775,12 @@
           const fit = tracingSvgPenScale > 0.15 ? tracingSvgPenScale : 0.9;
           const s = fit * 0.55;
           return Math.max(14, Math.min(Math.round(stem * s), 48));
+        }
+        // Portrait: lowercase keeps the current stem; uppercase uses the
+        // previous SVG highlighter (78 vs Alphabet 54).
+        if (tracingSvgUpper) {
+          const prev = stem * (TRACING_STROKE_WIDTH_SVG_UPPER / TRACING_STROKE_WIDTH);
+          return Math.max(58, Math.min(Math.round(prev), 144));
         }
         return Math.max(40, Math.min(Math.round(stem), 100));
       }
@@ -7036,15 +7045,43 @@
 
     const TRACING_CONTRAST_RGB = [201, 184, 159];
     const tracingSvgContrastCache = {};
+    const tracingSvgContrastOrder = [];
 
-    function prepareSvgContrastGuide(img, letter) {
-      if (tracingSvgContrastCache[letter]) return tracingSvgContrastCache[letter];
-      const w = Math.max(1, img.naturalWidth || img.width || 580);
-      const h = Math.max(1, img.naturalHeight || img.height || 620);
+    function rememberSvgContrast(key, cnv) {
+      tracingSvgContrastCache[key] = cnv;
+      tracingSvgContrastOrder.push(key);
+      while (tracingSvgContrastOrder.length > 6) {
+        const old = tracingSvgContrastOrder.shift();
+        if (old !== key) delete tracingSvgContrastCache[old];
+      }
+    }
+
+    // Rasterize the kraft-contrast pass at the on-screen pixel size (dest × dpr).
+    // Light mode draws the SVG Image directly at that size, so it stays sharp.
+    // Dark mode used to process at the SVG's intrinsic size (~1024px) and then
+    // scale the bitmap up, which softened the linework.
+    function prepareSvgContrastGuide(img, letter, pixelW, pixelH) {
+      let w = Math.max(1, pixelW | 0);
+      let h = Math.max(1, pixelH | 0);
+      if (w < 2 || h < 2) {
+        w = Math.max(1, img.naturalWidth || img.width || 580);
+        h = Math.max(1, img.naturalHeight || img.height || 620);
+      }
+      const MAX_SIDE = 4096;
+      const MAX_PX = 8000000;
+      if (w > MAX_SIDE || h > MAX_SIDE || w * h > MAX_PX) {
+        const s = Math.min(MAX_SIDE / w, MAX_SIDE / h, Math.sqrt(MAX_PX / (w * h)));
+        w = Math.max(1, Math.round(w * s));
+        h = Math.max(1, Math.round(h * s));
+      }
+      const key = String(letter) + '@' + w + 'x' + h;
+      if (tracingSvgContrastCache[key]) return tracingSvgContrastCache[key];
       const cnv = document.createElement('canvas');
       cnv.width = w;
       cnv.height = h;
       const x = cnv.getContext('2d');
+      x.imageSmoothingEnabled = true;
+      if ('imageSmoothingQuality' in x) x.imageSmoothingQuality = 'high';
       x.drawImage(img, 0, 0, w, h);
       const imageData = x.getImageData(0, 0, w, h);
       const px = imageData.data;
@@ -7115,7 +7152,7 @@
           if (comps[k].size > main.size) main = comps[k];
         }
         const holeIds = {};
-        const minHole = Math.max(1800, main.size * 0.02);
+        const minHole = Math.max(n * 0.002, main.size * 0.02);
         for (let k = 0; k < comps.length; k++) {
           const c0 = comps[k];
           if (c0.id === main.id) continue;
@@ -7134,13 +7171,32 @@
         }
       }
       x.putImageData(imageData, 0, 0);
-      tracingSvgContrastCache[letter] = cnv;
+      rememberSvgContrast(key, cnv);
       return cnv;
     }
 
     function drawSvgGuideImage(ctx, img, letter, rect) {
-      const src = (tracingBgMode === 'dark') ? prepareSvgContrastGuide(img, letter) : img;
-      ctx.drawImage(src, rect.x, rect.y, rect.w, rect.h);
+      if (tracingBgMode !== 'dark') {
+        ctx.drawImage(img, rect.x, rect.y, rect.w, rect.h);
+        return;
+      }
+      const dpr = window.devicePixelRatio || 1;
+      const dx = Math.round(rect.x * dpr);
+      const dy = Math.round(rect.y * dpr);
+      const dw = Math.max(1, Math.round(rect.w * dpr));
+      const dh = Math.max(1, Math.round(rect.h * dpr));
+      const src = prepareSvgContrastGuide(img, letter, dw, dh);
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      if (src.width === dw && src.height === dh) {
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(src, dx, dy);
+      } else {
+        ctx.imageSmoothingEnabled = true;
+        if ('imageSmoothingQuality' in ctx) ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(src, dx, dy, dw, dh);
+      }
+      ctx.restore();
     }
 
     function drawSvgDoubleGuides(ctx, W, H) {
@@ -7213,8 +7269,7 @@
         const ih = img.naturalHeight || img.height || 620;
         const r = getSvgGuideRect(W, H, Math.max(iw, 1), Math.max(ih, 1), letter);
         try {
-          const src = (tracingBgMode === 'dark') ? prepareSvgContrastGuide(img, letter) : img;
-          ctx.drawImage(src, r.x, r.y, r.w, r.h);
+          drawSvgGuideImage(ctx, img, letter, r);
         } catch (e) {
           console.warn('drawImage SVG failed', e);
         }
