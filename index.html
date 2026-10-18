@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="flashabc-build" content="395">
+<meta name="flashabc-build" content="396">
 
 <!-- Standalone Home Screen web app (iOS / iPadOS / Android) -->
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -2174,13 +2174,6 @@
           border:none;border-radius:10px 10px 0 0;
           z-index:2;min-width:72px;
         ">DIY</button>
-        <!-- Alphabet tab (lined notebook + font letters) -->
-        <button id="alphabetModeBtn" onclick="activateAlphabetMode()" style="
-          position:relative;padding:9px 16px 10px;font-size:1rem;font-weight:700;cursor:pointer;
-          background:rgba(255,255,255,0.18);color:rgba(255,255,255,0.75);
-          border:none;border-radius:10px 10px 0 0;
-          z-index:1;min-width:72px;
-        ">Alphabet</button>
         <!-- SVG tab (white page + stroke-order SVG guide) -->
         <button id="svgModeBtn" onclick="activateSvgMode()" style="
           position:relative;padding:9px 16px 10px;font-size:1rem;font-weight:700;cursor:pointer;
@@ -4739,7 +4732,7 @@
       '#666666', // Gray
     ];
     // Build stamp — check Settings/About or window.FLASHABC_BUILD if Safari looks stale
-    const FLASHABC_BUILD = '395';
+    const FLASHABC_BUILD = '396';
     window.FLASHABC_BUILD = FLASHABC_BUILD;
     // Alphabet tab highlighter width (fixed)
     const TRACING_STROKE_WIDTH = 54;
@@ -8098,18 +8091,6 @@
       }
     }
 
-    function activateAlphabetMode() {
-      tracingMode   = 'alphabet';
-      alphabetIndex = 0;
-      tracingWord   = ALPHABET_LIST[0];
-      window._svgPortraitOk = false; // landscape suggestion back on
-      if (typeof window.checkAppOrientation === 'function') window.checkAppOrientation();
-      updateTracingModeButtons('alphabet');
-      updateWheelDisplay();
-      randomTracingColor();
-      drawTracingPage();
-    }
-
     function activateSvgMode() {
       tracingMode   = 'svg';
       alphabetIndex = 0;
@@ -8848,13 +8829,12 @@
 
     function updateTracingModeButtons(active) {
       const manBtn  = document.getElementById('manualModeBtn');
-      const alpBtn  = document.getElementById('alphabetModeBtn');
       const svgBtn  = document.getElementById('svgModeBtn');
       const wsBtn   = document.getElementById('worksheetModeBtn');
       const caseBtn = document.getElementById('tracingCaseBtn');
       const wordLbl = document.getElementById('tracingWordLabel');
       const wordInp = document.getElementById('tracingWordInput');
-      if (!manBtn || !alpBtn) return;
+      if (!manBtn) return;
 
       const page = document.getElementById('tracingPage');
       if (page) page.classList.toggle('worksheet-mode', active === 'worksheet');
@@ -8866,7 +8846,6 @@
       }
 
       setTabButtonActive(manBtn, active === 'manual');
-      setTabButtonActive(alpBtn, active === 'alphabet');
       setTabButtonActive(svgBtn, active === 'svg');
       setTabButtonActive(wsBtn,  active === 'worksheet');
       const printBtn = document.getElementById('tracingPrintBtn');
@@ -8897,11 +8876,11 @@
         const undo = document.getElementById('tracingUndoBtn');
         if (undo) undo.style.display = 'none';
         setTimeout(layoutTracingWorksheet, 40);
-      } else if (active === 'alphabet' || active === 'svg') {
+      } else if (active === 'svg') {
         paintWorksheetSheetSwitch();
         const wheel = document.getElementById('tracingWheelWrap');
         if (wheel) wheel.style.display = '';
-        // Alphabet / SVG: hide DIY word tools; show Select + alpha shuffle
+        // SVG: hide DIY word tools; show Select + shuffle
         if (wordLbl) wordLbl.style.display = 'none';
         if (wordInp) wordInp.style.display = 'none';
         if (addBtn) addBtn.style.display = 'none';
