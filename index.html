@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="flashabc-build" content="392">
+<meta name="flashabc-build" content="395">
 
 <!-- Standalone Home Screen web app (iOS / iPadOS / Android) -->
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -4739,7 +4739,7 @@
       '#666666', // Gray
     ];
     // Build stamp — check Settings/About or window.FLASHABC_BUILD if Safari looks stale
-    const FLASHABC_BUILD = '392';
+    const FLASHABC_BUILD = '395';
     window.FLASHABC_BUILD = FLASHABC_BUILD;
     // Alphabet tab highlighter width (fixed)
     const TRACING_STROKE_WIDTH = 54;
@@ -4774,7 +4774,7 @@
         if (tracingSvgDouble) {
           const fit = tracingSvgPenScale > 0.15 ? tracingSvgPenScale : 0.9;
           const s = fit * 0.55;
-          return Math.max(14, Math.min(Math.round(stem * s * 1.10), 53));
+          return Math.max(14, Math.min(Math.round(stem * s * 1.155), 56));
         }
         // Portrait: lowercase keeps the current stem; uppercase uses the
         // previous SVG highlighter (78 vs Alphabet 54).
@@ -6992,7 +6992,7 @@
     /** Extra size for skinny lowercase SVG guides that look undersized vs a/o/e. */
     const SVG_LOWER_SCALE_BOOST = { f: 1.2, j: 1.2, t: 1.2, y: 1.2 };
     /** Landscape pair only: a bit larger for tall/skinny lowercase. */
-    const SVG_LANDSCAPE_LOWER_BOOST = { d: 1.10, f: 1.10, g: 1.10, h: 1.10, i: 1.10, j: 1.10, k: 1.10, t: 1.10, y: 1.10 };
+    const SVG_LANDSCAPE_LOWER_BOOST = { d: 1.10, f: 1.16, g: 1.10, h: 1.10, i: 1.10, j: 1.41, k: 1.10, t: 1.16, y: 1.10 };
 
     /** Fit SVG into the notepad: portrait larger; landscape smaller with side gaps. */
     function getSvgGuideRect(W, H, imgW, imgH, letter) {
